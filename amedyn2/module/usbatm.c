@@ -398,9 +398,8 @@ static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 		}
 			vdbg("%s: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", __func__, skb, skb->truesize);
 	ctrl->atm_data.vcc = vcc;
-		if (instance->snd_padding) {
-			memset(target, 0, instance->snd_padding);
-			target += instance->snd_padding;
+		vdbg("%s: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", __func__, skb, skb->truesize);
+			if (!atm_charge(vcc, skb->truesize)) {
 	ctrl->num_cells = UDSL_NUM_CELLS(skb->len);
 	ctrl->num_entire = skb->len / ATM_CELL_PAYLOAD;
 
@@ -425,9 +424,8 @@ static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 	crc = ~crc;
 
 	ctrl->aal5_trailer[4] = crc >> 24;
-		if (instance->snd_padding) {
-			memset(target, 0, instance->snd_padding);
-			target += instance->snd_padding;
+	ctrl->aal5_trailer[5] = crc >> 16;
+	ctrl->aal5_trailer[6] = crc >> 8;
 	ctrl->aal5_trailer[7] = crc;
 }
 		} else {
@@ -443,9 +441,8 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 			instance->buf_usage = buf_usage + avail_data;
 	vdbg("usbatm_write_cells: howmany=%u, skb->len=%d, num_cells=%u, num_entire=%u, pdu_padding=%u", howmany, skb->len, ctrl->num_cells, ctrl->num_entire, ctrl->pdu_padding);
 
-	if (instance->snd_padding) {
-		memset(target, 0, instance->snd_padding);
-		target += instance->snd_padding;
+	for (; avail_data >= stride; avail_data -= stride, source += stride)
+	nc = ctrl->num_cells;
 	ne = min(howmany, ctrl->num_entire);
 		usbatm_extract_one_cell(instance, source);
 
@@ -603,7 +600,6 @@ static void usbatm_process_receive(unsigned long data)
 		return;		/* done - no more buffers */
 	}
 	buf = list_entry(instance->filled_receive_buffers.next,
-				  (snd_buf_size - buf->free_cells) * (ATM_CELL_SIZE + instance->snd_padding),
 			 struct usbatm_receive_buffer, list);
 	list_del(&buf->list);
 	spin_unlock_irq(&instance->receive_lock);
@@ -1064,7 +1060,6 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 			}
 		dbg("usbatm_atm_close: NULL data!");
 	}
-		buf->base = kmalloc(snd_buf_size * (ATM_CELL_SIZE + instance->snd_padding),
 
 	down(&instance->serialize);	/* vs self, usbatm_atm_close */
 	struct usbatm_vcc_data *new = NULL;
