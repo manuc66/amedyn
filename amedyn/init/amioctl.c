@@ -226,12 +226,6 @@ Examples:
     printf(gettext("Error: Couldn't get device handle for ADSL modem
 "));
     return -1;
-  if (usb_set_configuration(adsl_handle, 1) < 0)
-  {
-    printf("Error: usb_set_configuration: %s
-", usb_strerror());
-    return -1;
-  }
   }
 
   u_ioctl.ifno = 1;
