@@ -1,0 +1,17 @@
+Recuerda, esto es un software EXPERIMENTAL.
+
+Para testear el software:
+.- Arranca Linux
+.- Instala los paquetes requeridos (linux-atm si tienes .rpm, atm-dev y atm-tools si tienes .deb)
+.- Desconecta el módem, espera 10 segundos y vuélvelo a conectar
+.- Vete al directorio amedyn y teclea make:
+     cd /usr/amedyn
+     make
+.- Edita el fichero /etc/amedyn
+.- Configura tu conexión (si utilizas rp-pppoe configura la conexión ejecutando adsl-setup e indicando nas0 como interface, si utilizas pppoa entonces configura los ficheros /etc/ppp/options, /etc/ppp/chap-secrets y /etc/ppp/pap-secrets)
+.- Ejecuta amstart.sh para iniciar la conexión y amstop.sh para parar la conexión. Orden correcta: amstart.sh -> amstop.sh -> corregir problemas -> amstart.sh -> amstop.sh
+.- Si todo funciona bien puedes instalar el servicio para que arranque automáticamente con make add_service dentro de /usr/amedyn. Puedes eliminar el servicio tecleando make remove_service
+
+Saludos,
+  Josep Comas (jcomas@gna.es)
+

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+KERNELDIR=/lib/modules/`uname -r`/build/
+
+if [ ! -d $KERNELDIR ]; then
+	echo "Error: could not find the source for your running kernel in $KERNELDIR"
+	exit 1
+fi
+
+echo "The source for your running kernel is in $KERNELDIR"
+
+if [ ! -e $KERNELDIR/.config ]; then
+	echo 'Error: you must first configure your kernel source (make menuconfig)'
+	exit 1
+fi
+
+if [ ! -e $KERNELDIR/include/linux/autoconf.h ]; then
+	echo 'Error: you need to update your kernel configuration (make oldconfig)'
+	exit 1
+fi
+
+if [ ! -e $KERNELDIR/include/linux/version.h ]; then
+	echo 'Error: you must first compile your kernel source (make dep)'
+	exit 1
+fi

@@ -1,0 +1,3 @@
+http://people.redhat.com/arjanv/2.5/RPMS.kernel/
+http://thomer.com/linux/migrate-to-2.6.html
+http://www.ags.uci.edu/~songw/kernel2.6-rh90-howto.txt

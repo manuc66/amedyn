@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# amedyn       This shell script takes care of starting and stopping
+#              amedyn driver.
+#
+### RedHat info
+#
+# chkconfig: 2345 50 25
+# description: Driver for use Zyxel 630-11 & Asus AAM6000UG 
+#
+### Suse info
+#
+### BEGIN INIT INFO
+# Provides: amedyn
+# Required-Start: hotplug
+# Required-Stop:
+# X-UnitedLinux-Should-Start:
+# X-UnitedLinux-Should-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop:
+# Short-Description: Driver for use Zyxel 630-11 & Asus AAM6000UG 
+# Description: Driver for use Zyxel 630-11 & Asus AAM6000UG
+### END INIT INFO
+
+# Suse
+# Determine the base and follow a runlevel link name.
+base=${0##*/}
+link=${base#*[SK][0-9][0-9]}
+
+# Redhat
+if [ -f /etc/init.d/functions ]; then
+        . /etc/init.d/functions
+elif [ -f /etc/rc.d/init.d/functions ]; then
+        . /etc/rc.d/init.d/functions
+fi
+
+RETVAL=0
+
+start() {
+        /usr/sbin/cxstart.sh service
+	RETVAL=$?
+	return $RETVAL
+}
+
+stop() {
+        /usr/sbin/cxstop.sh service
+	RETVAL=$?
+	return $RETVAL
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then
+                echo $"Driver loaded"
+		RETVAL=0
+        else
+                echo $"Driver not loaded"
+		RETVAL=1
+        fi
+        ;;
+  restart|reload)
+	stop && start
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|reload}"
+	exit 1
+esac
+
+exit $RETVAL
+

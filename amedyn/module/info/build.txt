@@ -1,0 +1,36 @@
+For kernel 2.6:
+http://lwn.net/Articles/21823/
+
+For kernel 2.2 and 2.4:
+
+If you have a local makefile with which you wish to build your module 
+not linked under the kernel tree in the proper way, you still can
+"ride" on the master Makefile.
+
+This way one can eliminate the dependency on your particular 
+machine kernel compilation options to be hardwired in the local Makefile.
+I.e., once you reconfigure the kernel, your driver will compile
+itself when you do a local "make" with the correct set of the new flags.
+
+This is what you can do on 2.2 (Makefile excerpt follows):
+EXTRA_CFLAGS := -DDEBUG -DLINUX -I/usr/src/foo/include
+MI_OBJS  := your-module.o
+O_TARGET := your-module.o
+O_OBJS   := your1.o your2.o
+
+# Reuse Linux kernel master makefile on this directory
+ifdef MAKING_MODULES
+include $(TOPDIR)/Rules.make
+else
+all::
+        cd '/usr/src/linux' && make modules SUBDIRS=$(PWD)
+endif
+
+In 2.4 the syntax is different. Rename
+MI_OBJS to obj-m and O_OBJS to obj-y to achieve the same goal there:
+obj-m  := your-module.o
+O_TARGET := your-module.o
+obj-y   := your1.o your2.o
+
+HTH,
+ Vassilii

@@ -1,0 +1,1 @@
+/lib/modules/2.6.0-0.test4.1.33/kernel/lib/crc32.ko

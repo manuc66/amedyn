@@ -1,0 +1,54 @@
+Autor:Richard B. Johnson (root@chaos.analogic.com)
+Asunto:Re: linux-2.6.0-test1 : modules not working
+ 
+View this article only
+Grupos de noticias:linux.kernel
+Fecha:2003-07-30 12:00:15 PST
+
+On Wed, 30 Jul 2003, Studying MTD wrote:
+
+> I am curious what is the minimum kernel source tree is
+> required to build external modules.
+>
+> I dont want to touch my kernel , i want to make
+> another directory same 'module_test' and want to copy
+> only required minimum kernel Source tree with modified
+> scripts's Makefile and kbuild Makefile to build "Hello
+> World".
+>
+> Please help me.
+>
+> Thanks.
+
+For Intel:
+
+/usr/src/linux-2.6.0
+/usr/src/linux-2.6.0/include/linux/*
+/usr/src/linux-2.6.0/include/asm-generic/*
+/usr/src/linux-2.6.0/include/asm-i386/*
+/usr/src/linux-2.6.0/include/asm # Symlink to above
+/usr/src/linux-2.6.0/include/math-emu/*
+/usr/src/linux-2.6.0/include/net/*
+/usr/src/linux-2.6.0/include/pcmcia/*
+/usr/src/linux-2.6.0/include/scsi/*
+/usr/src/linux-2.6.0/include/video/*
+
+
+When you compile modules, you use -I/usr/src/linux-2.6.0/include
+...on the command line. Remember to -D__KERNEL__ and -DMODULE.
+
+That's all you need for 2.6.0 modules...
+
+
+
+
+Cheers,
+Dick Johnson
+Penguin : Linux version 2.4.20 on an i686 machine (797.90 BogoMips).
+            Note 96.31% of all statistics are fiction.
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/

@@ -1,0 +1,3 @@
+http://kerneltrap.org/node/view/799
+http://linuxbooks.pananix.com/kernel2.6.html
+ftp://ftp.kernel.org/pub/linux/kernel/people/davej/misc/post-halloween-2.5.txt

@@ -1,0 +1,24 @@
+#
+# Config file for Zyxel 630-11 & Asus AAM6000UG (ADSL Modem USB) 
+#
+
+# Driver mode
+DRIVER_MODE=1  # 1 = normal, 2 = debug
+
+# Protocol
+PROTOCOL_MODE=1  # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), 3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe)
+
+# Paths
+BINARY_PATH="/usr/sbin"
+ATM_PATH=""
+
+# ATM
+VPI=8
+VCI=32
+
+# Specific for RFC1483/2684 routed/bridged
+#  if IP_ADDRESS is blank in bridged mode then it uses DHCP to get IP
+IP_ADDRESS=
+NETMASK=255.255.255.0
+GATEWAY=
+
