@@ -132,6 +132,7 @@ static const char udsl_driver_name [] = "xdslusb";
 #define AME_PRODUCTID2		        0xa5a5  /* Product = 630-11 & 630-13 */
 #define AME_VENDORID3		        0x0b05  /* Vendor = Asustek */
 #define AME_PRODUCTID3		        0x6206  /* Product = AAM6000UG with Alcatel chipset */
+#define AME_VENDORID4		        0x1767  /* Vendor = */
 
 		
 
@@ -194,6 +195,7 @@ static struct usb_device_id udsl_usb_ids [] = {
 	{ USB_DEVICE (AME_VENDORID1, AME_PRODUCTID1) },
 	{ USB_DEVICE (AME_VENDORID2, AME_PRODUCTID2) },
 	{ USB_DEVICE (AME_VENDORID3, AME_PRODUCTID3) },
+	{ USB_DEVICE (AME_VENDORID4, AME_PRODUCTID4) },
 	{ }
 };
 
@@ -863,15 +865,18 @@ static int udsl_atm_proc_read (struct atm_dev *atm_dev, loff_t *pos, char *page)
 	}
 
 	if (!left--)
-		return sprintf (page, "%s\n", instance->description);
+		return sprintf (page, "%s
+", instance->description);
 
 	if (!left--)
-		return sprintf (page, "MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+		return sprintf (page, "MAC: %02x:%02x:%02x:%02x:%02x:%02x
+",
 				atm_dev->esi [0], atm_dev->esi [1], atm_dev->esi [2],
 				atm_dev->esi [3], atm_dev->esi [4], atm_dev->esi [5]);
 
 	if (!left--)
-		return sprintf (page, "AAL5: tx %d ( %d err ), rx %d ( %d err, %d drop )\n",
+		return sprintf (page, "AAL5: tx %d ( %d err ), rx %d ( %d err, %d drop )
+",
 				atomic_read (&atm_dev->stats.aal5.tx),
 				atomic_read (&atm_dev->stats.aal5.tx_err),
 				atomic_read (&atm_dev->stats.aal5.rx),
@@ -893,11 +898,14 @@ static int udsl_atm_proc_read (struct atm_dev *atm_dev, loff_t *pos, char *page)
 
 		if (instance->usb_dev) {
 			if (!instance->firmware_loaded)
-				strcat (page, ", no firmware\n");
+				strcat (page, ", no firmware
+");
 			else
-				strcat (page, ", firmware loaded\n");
+				strcat (page, ", firmware loaded
+");
 		} else
-			strcat (page, ", disconnected\n");
+			strcat (page, ", disconnected
+");
 
 		return strlen (page);
 	}
@@ -1081,6 +1089,7 @@ static int udsl_usb_check_modem(unsigned int vid, unsigned int pid, unsigned int
 	else if (vid == AME_VENDORID3 && pid == AME_PRODUCTID3 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
 		return UDSL_MODEM_TYPE1;
 
+	else if (vid == AME_VENDORID4 && pid == AME_PRODUCTID4 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
 
 	return -1;
 }
@@ -1289,7 +1298,8 @@ static void udsl_usb_disconnect (struct usb_device *dev, void *ptr)
 		spin_lock_irq (&instance->receive_lock);
 		list_for_each (pos, &instance->spare_receivers)
 			if (++count > num_rcv_urbs)
-				panic (__FILE__ ": memory corruption detected at line %d!\n", __LINE__);
+				panic (__FILE__ ": memory corruption detected at line %d!
+", __LINE__);
 		spin_unlock_irq (&instance->receive_lock);
 
 		dbg ("udsl_usb_disconnect: found %u spare receivers", count);
@@ -1326,7 +1336,8 @@ static void udsl_usb_disconnect (struct usb_device *dev, void *ptr)
 		spin_lock_irq (&instance->send_lock);
 		list_for_each (pos, &instance->spare_senders)
 			if (++count > num_snd_urbs)
-				panic (__FILE__ ": memory corruption detected at line %d!\n", __LINE__);
+				panic (__FILE__ ": memory corruption detected at line %d!
+", __LINE__);
 		spin_unlock_irq (&instance->send_lock);
 
 		dbg ("udsl_usb_disconnect: found %u spare senders", count);
@@ -1370,7 +1381,8 @@ static int __init udsl_usb_init (void)
 	dbg ("udsl_usb_init: driver version " DRIVER_VERSION);
 
 	if (sizeof (struct udsl_control) > sizeof (skb->cb)) {
-		printk (KERN_ERR __FILE__ ": unusable with this kernel!\n");
+		printk (KERN_ERR __FILE__ ": unusable with this kernel!
+");
 		return -EIO;
 	}
 

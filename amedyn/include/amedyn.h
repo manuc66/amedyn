@@ -58,7 +58,7 @@
 #define SEND_BULK_RETRIES 4   /* Max retries when you send a bulk packet */
 #define READ_BULK_RETRIES 4   /* Max retries when you wait a bulk packet */
 #define CTRL_MSG_RETRIES  4   /* Max retries when you transfer a control message */
-#define MAX_WAIT_LINE_UP -1   /* Seconds to wait until ADSL line is up */
+#define MAX_WAIT_LINE_UP 90   /* Seconds to wait until ADSL line is up */
 
 /* usb errors */
 #define EPIPE      32        /* When we receive a STALL */
@@ -73,8 +73,12 @@
 #define MODEM_INIT  0x10
 #define MODEM_UP    0x20
 
+#define LINE_UP 0x50
 /* usb codes */
 #define VENDOR_REQUEST_OUT 0x40      /* Vendor specific requests, OUT direction */
 #define VENDOR_REQUEST_IN 0xC0       /* Vendor specific requets, IN direction */
+
+
+/* Command-line options */ 
 
 #endif /* _AMEDYN_H_ */

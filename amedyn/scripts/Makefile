@@ -1,18 +1,22 @@
 #
 ## Makefile for Zyxel 630-11 & Asus AAM6000UG (install scripts)
 #
+ifndef RPM_BUILD_ROOT
 
 BIN_PATH = /usr/sbin
 CONFIG_PATH = /etc
 CONFIG_FILE = amedyn
 SERVICE_FILE = amedyn
+SHARE_PATH = $(RPM_BUILD_ROOT)/usr/share
 SHARE_PATH = /usr/share
 TMESG_PATH = /usr/share/locale
 LANG=
 #LANGUAGES = es ca
 LANGUAGES = es
-
 generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh
+generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh
+
+generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh amfunctions.sh
 routed_scripts = amnetup.sh amnetdown.sh
 pppoa_scripts = amnet2up.sh amnet2down.sh
 bridged_scripts = amnet3up.sh amnet3down.sh
@@ -23,24 +27,30 @@ all_scripts = $(generic_scripts) $(routed_scripts) $(pppoa_scripts) $(bridged_sc
 install: generic config_file routed pppoa bridged pppoe
 
 generic: $(generic_scripts) 
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $^ $(BIN_PATH)
 	install -c -m 755 -p service/$(SERVICE_FILE) /etc/$(SERVICE_FILE).service
 
 config_file: config/$(CONFIG_FILE)
 	if [ ! -f $(CONFIG_PATH)/$(CONFIG_FILE) ]; then \
+		install -d $(CONFIG_PATH) ;\
 		install -c -m 644 -p $^ $(CONFIG_PATH); \
 	fi
 
 routed: $(routed_scripts) 
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $^ $(BIN_PATH) 
 
 pppoa: $(pppoa_scripts)
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $^ $(BIN_PATH)
 
 bridged: $(bridged_scripts)
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $^ $(BIN_PATH)
 
 pppoe: $(pppoe_scripts)
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $^ $(BIN_PATH)
 
 uninstall:
@@ -55,6 +65,7 @@ uninstall:
 #	done
 
 add_service: service/$(SERVICE_FILE)
+			chkconfig --add $(SERVICE_FILE); \
 	install -c -m 755 -p $^ /etc/$(SERVICE_FILE).service
 	if [ -f /etc/debian_version ]; then \
 		install -c -m 755 -p $^ /etc/init.d/$(SERVICE_FILE); \
@@ -63,7 +74,7 @@ add_service: service/$(SERVICE_FILE)
 	else \
 		if [ -f /etc/redhat-release ]; then \
 			install -c -m 755 -p $^ /etc/rc.d/init.d/$(SERVICE_FILE); \
-			chkconfig --add $(SERVICE_FILE); \
+			/sbin/chkconfig --add $(SERVICE_FILE); \
 		else \
 			if [ -f /etc/SuSE-release ] ; then \
 				install -c -m 755 -p $^ /etc/init.d/$(SERVICE_FILE); \
@@ -80,6 +91,7 @@ add_service: service/$(SERVICE_FILE)
 				fi \
 			fi \
 		fi \
+			chkconfig --del $(SERVICE_FILE); \
 	fi
 
 remove_service:
@@ -88,7 +100,7 @@ remove_service:
 		rm -f /etc/init.d/$(SERVICE_FILE); \
 	else \
 		if [ -f /etc/redhat-release ]; then \
-			chkconfig --del $(SERVICE_FILE); \
+			/sbin/chkconfig --del $(SERVICE_FILE); \
 			rm -f /etc/rc.d/init.d/$(SERVICE_FILE); \
 		else \
 			if [ -f /etc/SuSE-release ] ; then \
@@ -115,6 +127,7 @@ compile_strings: $(all_scripts)
 		echo "Error, type: make -e LANG=language_code $@" 1>&2; \
 		echo "Example: make -e LANG=es $@" 1>&2; \
 		exit 1; \
+ 		for j in locale/$$i/LC_MESSAGES/*; do \
 	fi
 	for i in $^; do \
 		msgfmt -o locale/$(LANG)/LC_MESSAGES/$$i.mo po/$(LANG)/$$i.po; \
@@ -125,7 +138,7 @@ install_strings:
 		if [ ! -d $(TMESG_PATH)/$$i/LC_MESSAGES ]; then \
 			mkdir -p $(TMESG_PATH)/$$i/LC_MESSAGES; \
 		fi; \
- 		for j in locale/$$i/LC_MESSAGES/*; do \
+		for j in locale/$$i/LC_MESSAGES/*; do \
 			install -c -m 644 -p $$j $(SHARE_PATH)/`dirname $$j`; \
 		done; \
 	done

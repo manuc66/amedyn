@@ -35,11 +35,14 @@ else
           echo $"Setting PPP over Ethernet..."
           amnet4up.sh || exit 1
         else
+	  if [ "$PROTOCOL_MODE" -eq 5 ]; then
           echo $"Error: unknow protocol mode" 1>&2
           exit 1
         fi
       fi
     fi
+  fi
+      amline.sh&
   fi
 fi
 

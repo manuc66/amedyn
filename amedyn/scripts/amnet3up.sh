@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. /etc/amedyn
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -26,6 +27,7 @@ brmod=`lsmod | cut -d' ' -f1 | grep -q -E "^br2684$"`
 if [ "$brmod" = "" ]; then
   echo $">>> Loading br2684 kernel module..."
 # No exit if error, module can be inserted in kernel
+  /sbin/modprobe br2684 
   modprobe br2684 
   echo
 fi
@@ -60,6 +62,7 @@ if [ "$GATEWAY" != "" ]; then
 fi
 
 # Now, we can send & receive data
+activate_transfer
 echo $">>> Activating send/receive data..."
 amioctl 1 || exit 1
 sleep 3s

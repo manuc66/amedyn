@@ -48,7 +48,8 @@ void fatal(char *str, int i)
 
 void exitFunc(void)
 {
-  syslog (LOG_PID,"Daemon terminated\n");	
+  syslog (LOG_PID,"Daemon terminated
+");	
 }
 
 
@@ -73,9 +74,11 @@ int create_br(char *nstr)
       err=ioctl (lastsock, ATM_NEWBACKENDIF, &ni);
   
       if (err == 0)
-	syslog(LOG_INFO, "Interface \"%s\" created sucessfully\n",ni.ifname);
+	syslog(LOG_INFO, "Interface \"%s\" created sucessfully
+",ni.ifname);
       else
-	syslog(LOG_INFO, "Interface \"%s\" could not be created, reason: %s\n",
+	syslog(LOG_INFO, "Interface \"%s\" could not be created, reason: %s
+",
 	       ni.ifname,
 	       strerror(errno));
       lastitf=num;	/* even if we didn't create, because existed, assign_vcc wil want to know it! */
@@ -98,7 +101,8 @@ int assign_vcc(char *astr, int encap, int bufsize)
     memset(&addr, 0, sizeof(addr));
     err=text2atm(astr,(struct sockaddr *)(&addr), sizeof(addr), T2A_PVC);
     if (err!=0)
-      syslog(LOG_ERR,"Could not parse ATM parameters (error=%d)\n",err);
+      syslog(LOG_ERR,"Could not parse ATM parameters (error=%d)
+",err);
     
 #if 0
     addr.sap_family = AF_ATMPVC;
@@ -106,7 +110,8 @@ int assign_vcc(char *astr, int encap, int bufsize)
     addr.sap_addr.vpi = 0;
     addr.sap_addr.vci = vci;
 #endif
-    syslog(LOG_INFO,"Communicating over ATM %d.%d.%d, encapsulation: %s\n", addr.sap_addr.itf,
+    syslog(LOG_INFO,"Communicating over ATM %d.%d.%d, encapsulation: %s
+", addr.sap_addr.itf,
 	   addr.sap_addr.vpi,
 	   addr.sap_addr.vci,
 	   encap?"VC mux":"LLC");
@@ -123,7 +128,8 @@ int assign_vcc(char *astr, int encap, int bufsize)
     qos.rxtp = qos.txtp;
     
     if ( (err=setsockopt(fd,SOL_SOCKET,SO_SNDBUF, &bufsize ,sizeof(bufsize))) )
-      syslog(LOG_ERR,"setsockopt SO_SNDBUF: (%d) %s\n",err, strerror(err));
+      syslog(LOG_ERR,"setsockopt SO_SNDBUF: (%d) %s
+",err, strerror(err));
     
     if (setsockopt(fd, SOL_ATM, SO_ATMQOS, &qos, sizeof(qos)) < 0)
       syslog(LOG_ERR,"setsockopt SO_ATMQOS %d", errno);
@@ -159,7 +165,8 @@ int assign_vcc(char *astr, int encap, int bufsize)
 
 void usage(char *s)
 {
-  printf("usage: %s [-b] [[-c number] [-e 0|1] [-a [itf.]vpi.vci]*]*\n", s);
+  printf("usage: %s [-b] [[-c number] [-e 0|1] [-a [itf.]vpi.vci]*]*
+", s);
   exit(1);
 }
 
@@ -188,14 +195,16 @@ int main (int argc, char **argv)
       case 'e':
 	encap=(atoi(optarg));
 	if(encap<0){
-	  syslog (LOG_ERR, "invalid encapsulation: %s:\n",optarg);
+	  syslog (LOG_ERR, "invalid encapsulation: %s:
+",optarg);
 	  encap=0;
 	}
 	break;
       case 's':
 	sndbuf=(atoi(optarg));
 	if(sndbuf<0){
-	  syslog(LOG_ERR, "Invalid sndbuf: %s, using size of 8192 instead\n",optarg);
+	  syslog(LOG_ERR, "Invalid sndbuf: %s, using size of 8192 instead
+",optarg);
 	  sndbuf=8192;
 	}
 	break;
@@ -216,21 +225,24 @@ int main (int argc, char **argv)
     
     pid=fork();
     if (pid < 0) {
-      fprintf(stderr,"Error detaching\n");
+      fprintf(stderr,"Error detaching
+");
       exit(2);
     } else if (pid) 
       exit(0); // This is the parent
     
     // Become a process group and session group leader
     if (setsid()<0) {
-      fprintf (stderr,"Could not set process group\n");
+      fprintf (stderr,"Could not set process group
+");
       exit(2);
     }
     
     // Fork again to let process group leader exit
     pid = fork();
     if (pid < 0) {
-      fprintf(stderr,"Error detaching during second fork\n");
+      fprintf(stderr,"Error detaching during second fork
+");
       exit(2);
     } else if (pid)
       exit(0); // This is the parent
@@ -246,7 +258,8 @@ int main (int argc, char **argv)
     
   }
   
-  syslog (LOG_INFO, "RFC 1483/2684 bridge daemon started\n");	
+  syslog (LOG_INFO, "RFC 1483/2684 bridge daemon started
+");	
   atexit (exitFunc);
   
   while (1) sleep(30);	/* to keep the sockets... */

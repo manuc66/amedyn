@@ -2,10 +2,14 @@
 ## Makefile for USB ADSL Modem
 #
 
+ifndef DEST_KERNEL
 DEST_KERNEL = $(shell uname -r)
+endif
 DEST_KERNEL_MAIN = $(shell uname -r | cut -d'.' -f1-2)
+endif
 KERNEL_PATH = /lib/modules/$(DEST_KERNEL)/build
 #KERNEL_PATH = /usr/src/linux-2.6.0-0.test4.1.33
+ifndef RPM_BUILD_ROOT
 MODULE_PATH = /lib/modules/$(DEST_KERNEL)/kernel/drivers/usb
 # You need remove .config file from $(KERNEL_PATH) if you use CONFIG_PATH different of KERNEL_PATH or if you use CONFIG_NAME different of .config
 CONFIG_PATH = $(KERNEL_PATH)
@@ -51,10 +55,11 @@ endif
 
 else
 
+all: normal debug
 	KDIR := $(KERNEL_PATH)
 	PWD := $(shell pwd)
 
-all: normal debug
+all: normal
 
 normal: $(xdslusb-files)
 	rm -f $(xdslusb-module-objs)
@@ -65,15 +70,19 @@ normal: $(xdslusb-files)
 
 debug: $(xdslusb-files)
 	rm -f $(xdslusb-module-objs)
+install: $(xdslusb-module-name) $(xdslusb-debug-module-name) 
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG -Wsign-compare" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) MAKEFILES=$(CONFIG_PATH)/$(CONFIG_NAME) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
-
-install: $(xdslusb-module-name) $(xdslusb-debug-module-name) 
 	install -d $(MODULE_PATH)
 	install -c $(xdslusb-module-name) $(MODULE_PATH)
-	install -c $(xdslusb-debug-module-name) $(MODULE_PATH)
+	/sbin/depmod -a
 	depmod -a
+
+install_dbg: $(xdslusb-debug-module-name)
+	install -d $(MODULE_PATH)
+	install -c $(xdslusb-debug-module-name) $(MODULE_PATH)
+	/sbin/depmod -a
 
 uninstall:
 	rm -f $(MODULE_PATH)/$(xdslusb-module-name)

@@ -99,7 +99,16 @@ unsigned long crc32tab[256] = {
 unsigned long calc_crc (char const *mem, int len, unsigned initial)
 {
 	unsigned crc, dummy_len;
-      __asm__ ("xorl %%eax,%%eax\n\t" "1:\n\t" "movl %%edx,%%eax\n\t" "shrl $16,%%eax\n\t" "lodsb\n\t" "xorb %%ah,%%al\n\t" "andl $255,%%eax\n\t" "shll $8,%%edx\n\t" "xorl (%%edi,%%eax,4),%%edx\n\t" "loop 1b":"=d" (crc),
+      __asm__ ("xorl %%eax,%%eax
+\t" "1:
+\t" "movl %%edx,%%eax
+\t" "shrl $16,%%eax
+\t" "lodsb
+\t" "xorb %%ah,%%al
+\t" "andl $255,%%eax
+\t" "shll $8,%%edx
+\t" "xorl (%%edi,%%eax,4),%%edx
+\t" "loop 1b":"=d" (crc),
 		 "=c"
 		 (dummy_len)
       :	 "S" (mem), "D" (&crc32tab[0]), "1" (len), "0" (initial)

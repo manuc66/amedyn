@@ -8,9 +8,12 @@ DEST_KERNEL = $(shell uname -r)
 KERNEL_PATH = /lib/modules/$(DEST_KERNEL)/build
 #KERNEL_PATH = /usr/src/linux
 CC = gcc
+CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign-compare
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX -Wsign-compare
 INCLUDES = -I$(KERNEL_PATH)/include 
+INCLUDES = -idirafter$(KERNEL_PATH)/include
 LDFLAGS = -latm -lresolv
+ifndef RPM_BUILD_ROOT
 BIN_PATH = /usr/sbin
 EXE_FILES = br2684ctl
 
@@ -32,6 +35,7 @@ clean:
 install: install_program 
 
 install_program: $(EXE_FILES)
+	install -d $(BIN_PATH)
 	install -c -m 755 -p $(EXE_FILES) $(BIN_PATH)
 
 uninstall:

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. /etc/amedyn
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -21,6 +22,7 @@ if grep -q "atm0" /proc/net/dev; then
   echo
 fi
 
+stop_transfer
 if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then
   echo $">>> Stopping transfers..."
   amioctl 2

@@ -7,6 +7,9 @@ TEXTDOMAIN=`basename $0`
 
 . /etc/amedyn
 
+if [ "$RESYNC" = "1" ] && [ "$1" != "amline" ] ; then
+fi
+
 if [ "$PROTOCOL_MODE" = "" ]; then
   echo $"Error: PROTOCOL_MODE not defined" 1>&2
   exit 1
@@ -35,6 +38,7 @@ else
   fi
 fi
 
+sleep 7s
 amunload.sh || exit 1
 
 if [ "$1" = "service" ]; then

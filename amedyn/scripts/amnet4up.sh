@@ -1,29 +1,37 @@
+#!/bin/bash
  #!/bin/bash
 
+. /etc/amedyn
 
  TEXTDOMAIN=`basename $0`
  #if [ -d "./locale" ]; then
  #  TEXTDOMAINDIR="./locale"
  #fi
+#fi
 
 
  . /etc/amedyn
+. /etc/amedyn
 
 
  # For PPPoE
  echo $">>> Setting PPPoE <<<"
  echo
+echo
 
 
  if [ "$ATM_PATH" = "" ]; then
    if [ -x /usr/local/sbin/br2684ctl ]; then
+  if [ -x /usr/local/sbin/br2684ctl ]; then
      ATM_PATH=/usr/local/sbin
    else
+  else
      if [ -x /usr/sbin/br2684ctl ]; then
        ATM_PATH=/usr/sbin
      fi
    fi
  fi
+fi
 
 
  # Now, we can send & receive data
@@ -86,12 +94,22 @@
    pppd || exit 1
  else
    if [ -x /usr/bin/pon ]; then
-     pon dsl-provider || exit 1
+if [ "$PPPOE" = "" ]; then
+  pppd || exit 1
    else
+else
      adsl-start || exit 1
    fi
  fi
  echo
-
-
+    else
+	    pppoe-connect || exit 1
+	pppoe-connect || exit 1
  echo $0 $"successful"
+    fi
+  fi
+fi
+echo
+
+
+echo $0 $"successful"

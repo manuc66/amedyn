@@ -50,9 +50,14 @@
   11/07/2004  Sktt (Aurelio)
   Fix synchronization problem
 
-  02/08/2207 Sktt (Aurelio)
+  02/08/2004 Sktt (Aurelio)
   Remove my stats and debug code
   Add send_cmds_sync function
+
+  07/12/2004 Sktt (Aurelio)
+  Remove init firmware
+
+  
 
 */
 
@@ -69,98 +74,19 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <popt.h>
 #include "amedyn.h"
 
 
 /* translation files */
 #define TF_CODE "amload"
 
-/* prepare to send usb firmware */
-char inifirm[] = {
-0x04, 0xa0, 0x00, 0x47, 0x02, 0x00, 0x00, 0xea,
-0x01, 0x00, 0x00, 0xea, 0x00, 0x00, 0x00, 0xea, 0xff, 0xff, 0xff, 0xea, 0xd1, 0x00, 0xa0, 0xe3,
-0x00, 0xf0, 0x29, 0xe1, 0x01, 0xd6, 0xa0, 0xe3, 0xd2, 0x00, 0xa0, 0xe3, 0x00, 0xf0, 0x29, 0xe1,
-0x01, 0xd6, 0xa0, 0xe3, 0xd3, 0x00, 0xa0, 0xe3, 0x00, 0xf0, 0x29, 0xe1, 0x01, 0xd6, 0xa0, 0xe3,
-0xb4, 0x23, 0x9f, 0xe5, 0x00, 0x10, 0x92, 0xe5, 0xff, 0x10, 0x01, 0xe2, 0x7f, 0x20, 0xa0, 0xe3,
-0x02, 0x00, 0x51, 0xe1, 0x26, 0x00, 0x00, 0x0a, 0xac, 0x03, 0x9f, 0xe5, 0x08, 0x00, 0x80, 0xe2,
-0xb8, 0x13, 0x9f, 0xe5, 0x00, 0x10, 0x80, 0xe5, 0x5f, 0x10, 0xe0, 0xe3, 0x5d, 0x30, 0xe0, 0xe3,
-0x5c, 0x50, 0xe0, 0xe3, 0x5b, 0x70, 0xe0, 0xe3, 0xa8, 0x03, 0x9f, 0xe5, 0xa0, 0x23, 0x9f, 0xe5,
-0xa4, 0x43, 0x9f, 0xe5, 0xa4, 0x63, 0x9f, 0xe5, 0x00, 0x10, 0x80, 0xe5, 0x00, 0x30, 0x82, 0xe5,
-0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5,
-0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5, 0x00, 0x50, 0x84, 0xe5,
-0x00, 0x70, 0x86, 0xe5, 0x50, 0x03, 0x9f, 0xe5, 0x08, 0x00, 0x80, 0xe2, 0x58, 0x13, 0x9f, 0xe5,
-0x00, 0x10, 0x80, 0xe5, 0x68, 0x03, 0x9f, 0xe5, 0x68, 0x13, 0x9f, 0xe5, 0x00, 0x10, 0x80, 0xe5,
-0x24, 0x23, 0x9f, 0xe5, 0x00, 0x10, 0x92, 0xe5, 0xff, 0x10, 0x01, 0xe2, 0x7f, 0x60, 0xa0, 0xe3,
-0x06, 0x00, 0x51, 0xe1, 0x02, 0x00, 0x00, 0x1a, 0x31, 0x1e, 0x8f, 0xe2, 0x00, 0x20, 0xa0, 0xe3,
-0x00, 0x20, 0x81, 0xe5, 0x0a, 0x02, 0xa0, 0xe3, 0x02, 0x14, 0xa0, 0xe3, 0x38, 0x63, 0x9f, 0xe5,
-0x00, 0x30, 0x91, 0xe5, 0x00, 0x40, 0xa0, 0xe3, 0x00, 0x50, 0xa0, 0xe1, 0x85, 0x40, 0x24, 0xe0,
-0x85, 0x4d, 0x24, 0xe0, 0x05, 0x4e, 0x24, 0xe0, 0x02, 0x41, 0x04, 0xe2, 0x00, 0x40, 0x24, 0xe0,
-0xe4, 0x0f, 0x23, 0xe0, 0x04, 0x10, 0x81, 0xe2, 0x06, 0x00, 0x51, 0xe1, 0xf3, 0xff, 0xff, 0x1a,
-0xc4, 0x22, 0x9f, 0xe5, 0x00, 0x10, 0x92, 0xe5, 0xff, 0x10, 0x01, 0xe2, 0x7a, 0x70, 0xa0, 0xe3,
-0x07, 0x00, 0x51, 0xe1, 0x01, 0x00, 0x00, 0x1a, 0xa7, 0x2f, 0x8f, 0xe2, 0x0d, 0x00, 0x00, 0xea,
-0x7c, 0x70, 0xa0, 0xe3, 0x07, 0x00, 0x51, 0xe1, 0x01, 0x00, 0x00, 0x1a, 0xa3, 0x2f, 0x8f, 0xe2,
-0x08, 0x00, 0x00, 0xea, 0x7f, 0x70, 0xa0, 0xe3, 0x07, 0x00, 0x51, 0xe1, 0x01, 0x00, 0x00, 0x1a,
-0x9f, 0x2f, 0x8f, 0xe2, 0x03, 0x00, 0x00, 0xea, 0x04, 0x20, 0xa0, 0xe3, 0x9d, 0x1f, 0x8f, 0xe2,
-0x00, 0x20, 0x81, 0xe5, 0x05, 0x00, 0x00, 0xea, 0x00, 0x70, 0x92, 0xe5, 0x00, 0x00, 0x57, 0xe1,
-0x02, 0x00, 0x00, 0x0a, 0x02, 0x20, 0xa0, 0xe3, 0x96, 0x1f, 0x8f, 0xe2, 0x00, 0x20, 0x81, 0xe5,
-0x98, 0x12, 0x9f, 0xe5, 0x00, 0x20, 0xa0, 0xe3,
-0x01, 0x89, 0xa0, 0xe3, 0x9b, 0x6a, 0xa0, 0xe3,
-0x04, 0x70, 0xa0, 0xe3, 0x08, 0x00, 0xa0, 0xe1, 0x00, 0x10, 0x80, 0xe5, 0x07, 0x00, 0x80, 0xe0,
-0x06, 0x00, 0x50, 0xe1, 0xfb, 0xff, 0xff, 0x1a, 0x03, 0x30, 0xa0, 0xe3, 0x01, 0x40, 0xe0, 0xe1,
-0x08, 0x00, 0xa0, 0xe1, 0x00, 0x50, 0x90, 0xe5, 0x01, 0x00, 0x55, 0xe1, 0x0f, 0x00, 0x00, 0x1a,
-0x01, 0x00, 0x53, 0xe3, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x40, 0x80, 0xe5, 0x07, 0x00, 0x80, 0xe0,
-0x06, 0x00, 0x50, 0xe1, 0xf6, 0xff, 0xff, 0x1a, 0x04, 0x10, 0xa0, 0xe1, 0x01, 0x30, 0x53, 0xe2,
-0xf1, 0xff, 0xff, 0x1a, 0x04, 0x00, 0x57, 0xe3, 0x0a, 0x00, 0x00, 0x1a, 0x30, 0x82, 0x9f, 0xe5,
-0x30, 0x62, 0x9f, 0xe5, 0x03, 0x70, 0xe0, 0xe3, 0x04, 0x10, 0xe0, 0xe1, 0xe9, 0xff, 0xff, 0xea,
-0x01, 0x30, 0xa0, 0xe3, 0x73, 0x1f, 0x8f, 0xe2, 0x00, 0x20, 0x91, 0xe5, 0x03, 0x20, 0x82, 0xe1,
-0x00, 0x20, 0x81, 0xe5, 0x21, 0x00, 0x00, 0xea, 0x00, 0x00, 0xa0, 0xe3, 0x06, 0x17, 0xa0, 0xe3,
-0x1e, 0x30, 0xa0, 0xe3, 0x03, 0x3b, 0x83, 0xe2, 0x02, 0x40, 0xa0, 0xe3, 0x03, 0x4b, 0x84, 0xe2,
-0x00, 0x2a, 0x83, 0xe1, 0x01, 0x00, 0x80, 0xe2, 0x0c, 0x00, 0x50, 0xe3, 0x04, 0x20, 0x81, 0xe4,
-0xfa, 0xff, 0xff, 0xba, 0x00, 0x2a, 0x84, 0xe1, 0x01, 0x00, 0x80, 0xe2, 0x18, 0x00, 0x50, 0xe3,
-0x04, 0x20, 0x81, 0xe4, 0xfa, 0xff, 0xff, 0xba, 0x00, 0x2a, 0x83, 0xe1, 0x01, 0x00, 0x80, 0xe2,
-0x1c, 0x00, 0x50, 0xe3, 0x04, 0x20, 0x81, 0xe4, 0xfa, 0xff, 0xff, 0xba, 0x00, 0x2a, 0x84, 0xe1,
-0x01, 0x00, 0x80, 0xe2, 0x01, 0x0a, 0x50, 0xe3, 0x04, 0x20, 0x81, 0xe4, 0xfa, 0xff, 0xff, 0xba,
-0x06, 0x07, 0xa0, 0xe3, 0x03, 0x40, 0xa0, 0xe3, 0x10, 0x0f, 0x02, 0xee, 0x10, 0x4f, 0x03, 0xee,
-0x10, 0x0f, 0x07, 0xee, 0x10, 0x0f, 0x05, 0xee, 0x3d, 0x00, 0xa0, 0xe3, 0x10, 0x0f, 0x01, 0xee,
-0x01, 0x73, 0xa0, 0xe3, 0x00, 0x00, 0xa0, 0xe3, 0xfa, 0x01, 0xc7, 0xe5, 0x05, 0x10, 0xa0, 0xe3,
-0x02, 0x0c, 0x51, 0xe3, 0x02, 0x00, 0x00, 0x0a, 0x01, 0x00, 0xc7, 0xe7, 0x01, 0x10, 0x81, 0xe2,
-0xfa, 0xff, 0xff, 0xea, 0x02, 0x00, 0xa0, 0xe3, 0x4a, 0x00, 0xc7, 0xe5, 0x08, 0x21, 0x9f, 0xe5,
-0x00, 0x10, 0x92, 0xe5, 0xff, 0x10, 0x01, 0xe2, 0x7f, 0x60, 0xa0, 0xe3, 0x06, 0x00, 0x51, 0xe1,
-0x04, 0x00, 0x00, 0x0a, 0x1c, 0x00, 0xa0, 0xe3, 0x4b, 0x00, 0xc7, 0xe5, 0x1d, 0x00, 0xa0, 0xe3,
-0x4c, 0x00, 0xc7, 0xe5, 0x03, 0x00, 0x00, 0xea, 0x00, 0x00, 0xa0, 0xe3, 0x4b, 0x00, 0xc7, 0xe5,
-0x01, 0x00, 0xa0, 0xe3, 0x4c, 0x00, 0xc7, 0xe5, 0x0f, 0x00, 0xa0, 0xe3, 0xba, 0x00, 0xc7, 0xe5,
-0x00, 0x00, 0xa0, 0xe3, 0xbb, 0x00, 0xc7, 0xe5, 0x42, 0x00, 0xa0, 0xe3, 0xbc, 0x00, 0xc7, 0xe5,
-0x43, 0x00, 0xa0, 0xe3, 0xbd, 0x00, 0xc7, 0xe5,
-0x4c, 0x00, 0xa0, 0xe3, 0xbe, 0x00, 0xc7, 0xe5,
-0x41, 0x00, 0xa0, 0xe3, 0xbf, 0x00, 0xc7, 0xe5, 0x00, 0x00, 0xa0, 0xe3, 0xc0, 0x00, 0xc7, 0xe5,
-0x00, 0x00, 0xa0, 0xe3, 0xc1, 0x00, 0xc7, 0xe5, 0xff, 0x00, 0xa0, 0xe3, 0xc2, 0x00, 0xc7, 0xe5,
-0xff, 0x00, 0xa0, 0xe3, 0xc3, 0x00, 0xc7, 0xe5, 0x00, 0x00, 0xa0, 0xe3, 0xfd, 0x01, 0xc7, 0xe5,
-0x74, 0x20, 0x9f, 0xe5, 0x00, 0x10, 0x92, 0xe5, 0xff, 0x10, 0x01, 0xe2, 0x7f, 0x60, 0xa0, 0xe3,
-0x06, 0x00, 0x51, 0xe1, 0x0b, 0x00, 0x00, 0x1a, 0x40, 0x10, 0xa0, 0xe3, 0x98, 0x10, 0x87, 0xe5,
-0x99, 0x10, 0x87, 0xe5, 0x20, 0x10, 0xa0, 0xe3, 0x9a, 0x10, 0x87, 0xe5, 0x9b, 0x10, 0x87, 0xe5,
-0x04, 0x10, 0xa0, 0xe3, 0x9c, 0x10, 0x87, 0xe5, 0x02, 0x10, 0xa0, 0xe3, 0x9d, 0x10, 0x87, 0xe5,
-0x03, 0x10, 0xa0, 0xe3, 0x9e, 0x10, 0x87, 0xe5, 0x80, 0x00, 0xa0, 0xe3, 0x24, 0x10, 0x8f, 0xe2,
-0x00, 0x20, 0x91, 0xe5, 0x02, 0x00, 0x80, 0xe1, 0x01, 0x00, 0xc7, 0xe5, 0x04, 0x10, 0x8f, 0xe2,
-0x00, 0x20, 0x91, 0xe5, 0x12, 0xff, 0x2f, 0xe1, 0x17, 0x00, 0x00, 0x02, 0x15, 0x2f, 0x8c, 0x9b,
-0xef, 0x63, 0xf5, 0x3f, 0x16, 0xb1, 0x38, 0xea, 0x00, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x02,
-0x00, 0x02, 0xd0, 0x00, 0x0e, 0xf0, 0xa0, 0xe1, 0x0e, 0xf0, 0xa0, 0xe1, 0x00, 0x00, 0x00, 0x8c,
-0x20, 0x00, 0x00, 0x88, 0x50, 0x00, 0x00, 0x01, 0x02, 0x00, 0x00, 0x00, 0xf4, 0x00, 0x00, 0x00,
-0x39, 0x00, 0x00, 0x00, 0x10, 0x40, 0x08, 0x00, 0x00, 0x40, 0x00, 0x00, 0x20, 0x40, 0x00, 0x00,
-0x30, 0x4e, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa0, 0x15, 0x80, 0x00, 0x00, 0xac, 0x01, 0x00, 0x02,
-0xaa, 0xaa, 0xaa, 0xaa, 0xfc, 0xaf, 0x09, 0x00, 0xfc, 0x3f, 0x00, 0x00, 0x44, 0x79, 0x6e, 0x61,
-0x4d, 0x69, 0x54, 0x65, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6d, 0x20, 0x53, 0x57, 0x20, 0x49, 0x4e,
-0x49, 0x54, 0x20, 0x33, 0x5f, 0x36, 0x5f, 0x37, 0x30, 0x5f, 0x72, 0x65, 0x64, 0x75, 0x63, 0x65,
-0x64, 0x42, 0x49, 0x53, 0x54, 0x20, 0x2f, 0x20, 0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
-0x74, 0x20, 0x41, 0x6c, 0x63, 0x61, 0x74, 0x65, 0x6c, 0x20, 0x4d, 0x69, 0x63, 0x72, 0x6f, 0x65,
-0x6c, 0x65, 0x63, 0x74, 0x72, 0x6f, 0x6e, 0x69, 0x63, 0x73, 0x20, 0x57, 0x65, 0x64, 0x20, 0x4f,
-0x63, 0x74, 0x20, 0x31, 0x31, 0x20, 0x31, 0x33, 0x3a, 0x35, 0x37, 0x3a, 0x30, 0x30, 0x20, 0x4d,
-0x45, 0x54, 0x20, 0x44, 0x53, 0x54, 0x20, 0x32, 0x30, 0x30, 0x30, 0x00, 0xd9, 0xcb, 0x27, 0x34};
-
 /* modem internal characteristics */
 struct usb_modem_char {
   unsigned int vid;  /* VendorID */
   unsigned int pid;  /* ProductID */
   char *firmfile;  /* firmware file name */
+  char *initfirmfile;  /* init firmware file name */
   int datamax;  /* maximum data that we can send in a block */
 };
 struct usb_modem_char modem_char;
@@ -183,8 +109,6 @@ const char *adsl_modes[] = {
  "ANSI",
  "G.DMT",
  "G.Lite"
-};
-
 /* check if a file exists */
 int file_exists(const char *filename)
 {
@@ -215,7 +139,8 @@ void dump(unsigned char *buf, int lenbuf, int lenline)
       printf("   ");
     for (j = i; j < lenbuf && j < i + lenline; j++)
       print_char(buf[j]);
-    printf("\n");
+    printf("
+");
   }
 }
 
@@ -235,13 +160,15 @@ int transfer_ctrl_msg(usb_dev_handle *adsl_handle, int requesttype, int request,
 #endif
     if (n >= 0) {
 #if DEBUG_TRANSFER
-      printf(gettext("%d bytes transferred:\n"), n);
+      printf(gettext("%d bytes transferred:
+"), n);
       dump(buf, n, 16);
 #endif
       break;
     }
     else {
-      printf(gettext("Error: usb_control_msg: %s\n"), usb_strerror());
+      printf(gettext("Error: usb_control_msg: %s
+"), usb_strerror());
       if (n == -EPIPE) {
         usb_clear_halt(adsl_handle, 0x00);
         usb_clear_halt(adsl_handle, 0x80);
@@ -252,7 +179,8 @@ int transfer_ctrl_msg(usb_dev_handle *adsl_handle, int requesttype, int request,
     }
   }
   if (n < 0) {
-    printf(gettext("Error: usb_control_msg failed after %d retries\n"), CTRL_MSG_RETRIES);
+    printf(gettext("Error: usb_control_msg failed after %d retries
+"), CTRL_MSG_RETRIES);
     return -1;
   }
   return n;
@@ -275,13 +203,15 @@ int read_bulk(usb_dev_handle *adsl_handle, int ep, char *buf, int size)
 #endif
     if (n >= 0) {
 #if DEBUG_TRANSFER
-      printf(gettext("%d bytes downloaded:\n"), n);
+      printf(gettext("%d bytes downloaded:
+"), n);
       dump(buf, n, 16);
 #endif
       break;
     }
     else {
-      printf(gettext("Error: usb_bulk_read: %s\n"), usb_strerror());
+      printf(gettext("Error: usb_bulk_read: %s
+"), usb_strerror());
       if (n == -EPIPE) {
         usb_clear_halt(adsl_handle, ep);
       }
@@ -291,7 +221,8 @@ int read_bulk(usb_dev_handle *adsl_handle, int ep, char *buf, int size)
     }
   }
   if (n < 0) {
-    printf(gettext("Error: usb_bulk_read failed after %d retries\n"), READ_BULK_RETRIES);
+    printf(gettext("Error: usb_bulk_read failed after %d retries
+"), READ_BULK_RETRIES);
     return -1;
   }
   return 0;
@@ -315,13 +246,15 @@ int send_bulk(usb_dev_handle *adsl_handle, int ep, char *buf, int nfil, int ncol
 #endif
       if (n >= 0) {
 #if DEBUG_TRANSFER
-        printf(gettext("%d bytes uploaded:\n"), n);
+        printf(gettext("%d bytes uploaded:
+"), n);
         dump(buf+(i*ncol), ncol, 16);
 #endif
         break;
       }
       else {
-        printf(gettext("Error: usb_bulk_write: %s\n"), usb_strerror());
+        printf(gettext("Error: usb_bulk_write: %s
+"), usb_strerror());
 	if (n == -EPIPE) {
 	  usb_clear_halt(adsl_handle, ep);
 	}
@@ -331,7 +264,8 @@ int send_bulk(usb_dev_handle *adsl_handle, int ep, char *buf, int nfil, int ncol
       }
     }
     if (n < 0) {
-      printf(gettext("Error: usb_bulk_write failed after %d retries\n"), SEND_BULK_RETRIES);
+      printf(gettext("Error: usb_bulk_write failed after %d retries
+"), SEND_BULK_RETRIES);
       return -1;
     }
   }
@@ -379,7 +313,8 @@ int send_block(usb_dev_handle *adsl_handle, int place, char *bufin, int len)
   memset(buf, 0, sizeof(buf));
   format_message(0x88, len, place, buf);
   memcpy(buf+8, bufin, len);
-  PDEBUG(gettext("Sending block at address = 0x%04x...\n"), place);
+  PDEBUG(gettext("Sending block at address = 0x%04x...
+"), place);
   if (send_bulk(adsl_handle, USB_OUT_FIRM, buf, 1, len+8))
     return -1;
   return 0;
@@ -453,50 +388,42 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   unsigned char buf[0x1ff];   /* buffer */
   FILE *soft;   /* file handle */
   long len;     /* length */
-  int place;    /* initial target address */
   char value;  /* returned byte */
   int i;  /* counter */
   time_t first, last, before;  /* to wait */
+  int place;    /* initial target address */
   unsigned char bufconf[8];  /* buffer to save config bytes */
-  unsigned char *pbuf;  /* pointer to buffer */
 
 
   /* clear endpoints */
   clear_endpoints(adsl_handle, 1);
 
-  /* load firmware */
-  printf(gettext("Loading and sending %s...\n"), modem_char.firmfile); 
-  soft = fopen(modem_char.firmfile, "rb");
-  if (soft == NULL)
-  {
-    printf(gettext("Error: I can't open file %s\n"), modem_char.firmfile);
-    return -1;
-  }
-  fseek(soft, 0L, SEEK_END);
-  len = ftell(soft);
-  PDEBUG(gettext("Length of file %s = %ld bytes\n"), modem_char.firmfile, len);
 /*
   fseek(soft, 0L, SEEK_SET);
   len = fread(buf, 1, 5, soft);
   if (len <= 0)
   {
-    printf(gettext("Error: No bytes to read from file %s\n"), modem_char.firmfile);
+    printf(gettext("Error: No bytes to read from file %s
+"), modem_char.firmfile);
     return -1;
   }
   if (len != 5)
   {
-    printf(gettext("Error: I can't read initial 5 bytes from file %s\n"), filename);
+    printf(gettext("Error: I can't read initial 5 bytes from file %s
+"), filename);
     return -1;
   }
 */
   /* check initial bytes */
 /*
-  PDEBUG(gettext("Initial bytes from file %s:\n"), filename);
+  PDEBUG(gettext("Initial bytes from file %s:
+"), filename);
 #if DEBUG
   dump(buf, 5, 5);
 #endif
   if (buf[0] != FIRMBYTE1 || buf[1] != FIRMBYTE2 || buf[2] != FIRMBYTE3 || buf[3] != FIRMBYTE4 || buf[4] != FIRMBYTE5) {
-    printf(gettext("Error: Maybe file %s isn't Conexant firmware, contact with author of this program\n"), filename);
+    printf(gettext("Error: Maybe file %s isn't Conexant firmware, contact with author of this program
+"), filename);
     return -1;
   }
 */
@@ -505,45 +432,33 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   /* initialize */
   /**************/
 
-  PDEBUG(gettext("PreInit...\n"));
+  PDEBUG(gettext("PreInit...
+"));
 
   /* clear, reset */
-  i = sizeof(inifirm);
-  place = 0x0000;
-  pbuf = inifirm; 
-  while (i > 0) {
-    if (i > modem_char.datamax)
-      len = modem_char.datamax;
-    else
-      len = i;
-    if (send_block(adsl_handle, place, pbuf, len))
-      return -1;
-    i -= len;
-    place += len;
-    pbuf += len;
-    buf[0] = 0x40; buf[1] = 0x01; buf[2] = 0x12;
-    if (send_bulk(adsl_handle, USB_OUT_FIRM, buf, 1, 3))
-      return -1;
+
+  printf(gettext("Loading and sending %s...
+"), modem_char.initfirmfile); 
+  soft = fopen(modem_char.initfirmfile, "rb");
+  if (soft == NULL)
+  {
+    printf(gettext("Error: I can't open file %s
+"), modem_char.initfirmfile);
+    return -1;
   }
-  if (jump_to_address(adsl_handle, 0x00000000))
-    return -1;
+  fseek(soft, 0L, SEEK_END);
+  len = ftell(soft);
+  PDEBUG(gettext("Length of file %s = %ld bytes
+"), modem_char.initfirmfile, len);
 
-  /* read something needed */
-  if (read_bulk(adsl_handle, USB_IN_FIRM, buf, 0x1ff))
-    return -1;
-  memcpy(bufconf, buf+0xb9, 8);
-
-
-  /*****************/
-  /* send firmware */
-  /*****************/
-
-  PDEBUG(gettext("Firmware...\n"));
+  PDEBUG(gettext("Init Firmware...
+"));
   fseek(soft, 0L, SEEK_SET);
   place = 0x0000; 
   while ((len = fread(buf, 1, modem_char.datamax, soft)) > 0)
   {
-    PDEBUG(gettext("%ld bytes readed from file %s\n"), len, modem_char.firmfile);
+    PDEBUG(gettext("%ld bytes readed from file %s
+"), len, modem_char.initfirmfile);
     if (send_block(adsl_handle, place, buf, len))
       return -1;
     place += len;
@@ -555,17 +470,67 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 
   if (jump_to_address(adsl_handle, 0x00000000))
     return -1;
-  printf(gettext("Firmware is sent!\n"));
+
+  printf(gettext("Init firmware is sent!
+"));
+
+  /* read something needed */
+  if (read_bulk(adsl_handle, USB_IN_FIRM, buf, 0x1ff))
+    return -1;
+  memcpy(bufconf, buf+0xb9, 8);
+
+
+  /*****************/
+  /* send firmware */
+  /*****************/
+
+  printf(gettext("Loading and sending %s...
+"), modem_char.firmfile); 
+  soft = fopen(modem_char.firmfile, "rb");
+  if (soft == NULL)
+  {
+    printf(gettext("Error: I can't open file %s
+"), modem_char.firmfile);
+    return -1;
+  }
+  fseek(soft, 0L, SEEK_END);
+  len = ftell(soft);
+  PDEBUG(gettext("Length of file %s = %ld bytes
+"), modem_char.firmfile, len);
+
+  PDEBUG(gettext("Firmware...
+"));
+  fseek(soft, 0L, SEEK_SET);
+  place = 0x0000; 
+  while ((len = fread(buf, 1, modem_char.datamax, soft)) > 0)
+  {
+    PDEBUG(gettext("%ld bytes readed from file %s
+"), len, modem_char.firmfile);
+    if (send_block(adsl_handle, place, buf, len))
+      return -1;
+    place += len;
+    buf[0] = 0x40; buf[1] = 0x01; buf[2] = 0x12;
+    if (send_bulk(adsl_handle, USB_OUT_FIRM, buf, 1, 3))
+      return -1;
+  } 
+  fclose(soft);
+
+  if (jump_to_address(adsl_handle, 0x00000000))
+    return -1;
+  printf(gettext("Firmware is sent!
+"));
 
   /* wait until firmware is ready */
   sleep(1);
 
+  int i;  /* counter */
 
   /*************/
   /* post load */
   /*************/
 
-  PDEBUG(gettext("PostInit...\n"));
+  PDEBUG(gettext("PostInit...
+"));
 
   /* configure something */
 
@@ -589,9 +554,11 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
       return -1;
   }
 
+  time_t first, last, before;  /* to wait */
 
   /* waiting until line is up (a maximum time) */
-  printf (gettext ("Waiting ADSL line is up (until %d seconds)...\n"),
+  printf (gettext ("Waiting ADSL line is up (until %d seconds)...
+"),
 	  MAX_WAIT_LINE_UP);
   time (&first);
   before = first;
@@ -599,12 +566,14 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   if (len < 0)
     return -1;
 
+/*
   for (i = 0xba; i <= 0xc1; i++) {
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, i, &bufconf[i-0xba], 1);
     if (len < 0)
       return -1;
   }
  
+
 do
   {
 
@@ -612,7 +581,8 @@ do
 
   if (len < 0)
 	{
-	printf(gettext("Error at sync line!\n"));
+	printf(gettext("Error at sync line!
+"));
 	return -1;
 	}
 
@@ -623,13 +593,16 @@ do
   memset(&modem_info, 0, sizeof(struct usb_modem_info));
 
   do {
-    PDEBUG(gettext("Sending retrieve info...\n"));
+    PDEBUG(gettext("Sending retrieve info...
+"));
     memset(buf, 0, 0x10);
     len = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
     if (len < 0)
-      printf(gettext("Error retrieving info!\n"));
+      printf(gettext("Error retrieving info!
+"));
     else {
-      PDEBUG(gettext("%li bytes readed:\n"), len);
+      PDEBUG(gettext("%li bytes readed:
+"), len);
 #if DEBUG_TRANSFER
       if (len > 0)
         dump(buf, len, 16);
@@ -647,7 +620,8 @@ do
 		      if (modem_info.modem_status == MODEM_INIT)
 			printf ("-");
  */
-		      PDEBUG (gettext ("Modem status = %02x\n"),
+		      PDEBUG (gettext ("Modem status = %02x
+"),
 			      modem_info.modem_status);
 		    }
 	      fflush (stdout);
@@ -674,13 +648,15 @@ do
 	 && ((difftime (last, first) < MAX_WAIT_LINE_UP)
 	     || MAX_WAIT_LINE_UP == -1));
 
-  printf ("\n");
+  printf ("
+");
 
 
   if ( (modem_info.modem_status == MODEM_UP ) 
     ||(len == 1 && (buf[0] & 0xff) == 0x50) )
   {
-    printf(gettext("ADSL line is up\n"));
+    printf(gettext("ADSL line is up
+"));
 /* these lines blink leds:
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x30, 0x03, 0x00, NULL, 0);
     if (len < 0)
@@ -690,30 +666,36 @@ do
       return -1;
 */
 /*
-    printf(gettext("ADSL line is up (Downstream %u Kbits/s, Upstream %u Kbits/s)\n"), modem_info.down_bitrate, modem_info.up_bitrate);
+    printf(gettext("ADSL line is up (Downstream %u Kbits/s, Upstream %u Kbits/s)
+"), modem_info.down_bitrate, modem_info.up_bitrate);
 #ifdef DEBUG
     printf(gettext("ADSL mode = %i"), modem_info.operational_mode);
     if ((modem_info.operational_mode > 0) && (modem_info.operational_mode < 4))
       printf(" (%s)", adsl_modes[modem_info.operational_mode-1]);
-    printf("\n");
+    printf("
+");
 #endif
 */
   }
   else
   {
-    printf(gettext("ADSL line is down\n"));
+    printf(gettext("ADSL line is down
+"));
     return -1;
   }
 
 /*
 #ifdef DEBUG
-  printf(gettext("Waiting to receive first ATM cells...\n"));
+  printf(gettext("Waiting to receive first ATM cells...
+"));
   time(&first); before = first;
   do {
     len = usb_bulk_read(adsl_handle, USB_IN_DATA, buf, sizeof(buf), DATA_TIMEOUT);
     if (len > 0)  {
-      printf("\n");
-      printf(gettext("ATM cells received:\n"));
+      printf("
+");
+      printf(gettext("ATM cells received:
+"));
       dump(buf, len, 16);
       return 0;
     }
@@ -724,7 +706,8 @@ do
     }
   } 
   while (difftime(last, first) < 60);
-  printf("\n");
+  printf("
+");
 #endif
 */
 
@@ -741,17 +724,21 @@ void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode)
   }
 
   switch (tmodem) {
-
+      modem_char.firmfile = "/usr/sbin/fw-usb.bin";
+      modem_char.initfirmfile = "/usr/sbin/Init-usb.bin";
     /* AME Dynamite USB Modem */
     case 1:
       modem_char.datamax = 0x1a0;
-      modem_char.firmfile = "/usr/sbin/fw-usb.bin";
+      modem_char.firmfile = "/lib/firmware/fw-usb.bin";
+      modem_char.initfirmfile = "/lib/firmware/Init-usb.bin";
       break;
-
+      modem_char.firmfile = "/usr/sbin/Fw-usb_A.bin";
+      modem_char.initfirmfile = "/usr/sbin/Init-usb.bin";
    /* Asus AAM6000UG */
     case 2:
       modem_char.datamax = 0x1f2;
-      modem_char.firmfile = "/usr/sbin/Fw-usb_A.bin";
+      modem_char.firmfile = "/lib/firmware/Fw-usb_A.bin";
+      modem_char.initfirmfile = "/lib/firmware/Init-usb.bin";
       break;
   }
 }
@@ -773,9 +760,16 @@ int check_modem(unsigned int vid, unsigned int pid)
 
   return -1;
 }
+extern int sync_line(usb_dev_handle *adsl_handle, int tmodem);
+extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
+extern int first_config(usb_dev_handle *adsl_handle, int tmodem);
+extern int sync_line(usb_dev_handle *adsl_handle, int tmodem, int max_wait_line_up);
+extern int load_firmware(usb_dev_handle *adsl_handle, int tmodem);
+extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 
-int main(int argc, char *argv[])
 {
+  poptContext optCon; /* context for parsing command-line options */
+
   /* bus structures variables */
   struct usb_bus * bus;
   struct usb_device * dev;
@@ -790,56 +784,98 @@ int main(int argc, char *argv[])
 
   /* open mode */
   int open_mode = -1;
-
   /* type of modem */
   int tmodem = -1;
 
-
+  /* buffer use to check if the modem are init yet.*/  
+            "Verbose level.",  "[0..1]"},
+        { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
+            "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
+  
   /* reset command queries */
   //memset(modem_cmd_state, 0, sizeof(modem_cmd_state));
-
-  /* init locale */
-  setlocale(LC_ALL, "");
-  //if (file_exists("./locale")) 
-  //  bindtextdomain(TF_CODE, "./locale");  /* set directory for a domain (source code messages) */
-  //else 
-    bindtextdomain(TF_CODE, "/usr/share/locale");  /* set directory for a domain (source code messages) */
-  textdomain(TF_CODE);  /* set domain */
-
-  /* show program information */
+            "Don't claim interface 1. (Debug option)",  ""},
+        { NULL,     '2',
+	    POPT_ARG_NONE, &command_options.no_claim_interface_2, 0,
+  printf(" 02/08/2004
+");
   printf(gettext("Zyxel 630-11 & Asus AAM6000UG microcode upload program."));
-  printf(" 02/08/2004\n");
-  printf("Josep Comas <jcomas@gna.es>\n");
-  printf("Sundar <sundar@cynaptix.biz>\n");
-  printf("Eduardo Espejo <eespejo@users.sourceforge.net>\n\n");
+  printf(" 16/07/2006
+");
+  printf("Josep Comas <jcomas@gna.es>
+");
+  printf("Sundar <sundar@cynaptix.biz>
+");
+  printf("Eduardo Espejo <eespejo@users.sourceforge.net>
 
+");
+
+  if (argc <= 1)
+    fprintf(stderr, "WARNING: amload must be run with root privileges
+");
+    poptPrintUsage(optCon, stderr, 0);
+	poptFreeContext(optCon);
+    return -1;
+  }
+
+  r = poptGetNextOpt(optCon);
+  if ( r < -1 ) {
+    fprintf(stderr, "%s: %s
+",
+	poptBadOption(optCon, POPT_BADOPTION_NOALIAS),
   /* check parameters */
 /*
   if (argc < 1)
   {
-    printf(gettext("Usage:\n"));
-    printf(gettext("   %s [open_mode]\n"), argv[0]);
+    printf(gettext("Usage:
+"));
+    printf(gettext("   %s [open_mode]
+"), argv[0]);
     return -1;
   }
   if (argc > 1) {
     open_mode = atoi(argv[1]);
     if ((open_mode < 0) || (open_mode > 5)) {
-      printf(gettext("Error: Incorrect open mode\n"));
+      printf(gettext("Error: Incorrect open mode
+"));
       return -1;
     }
   }
 */
 
+	poptStrerror(r));
+	poptFreeContext(optCon);
+    return -1;
+    }
+    
+  poptFreeContext(optCon);
+
+  /*
+  * Security stuff
+  * 1 - be sure to be root
+  * 2 - umask to prevent critical data being read from log file
+  */
+  if(geteuid() != 0) {
+    poptPrintUsage(optCon, stderr, 0);
+    fprintf(stderr, "WARNING: amload must be run with root privileges
+
+");
+    exit (-1);
+  }
+
+
   /* init USB bus and find devices */
   usb_init();
   if (usb_find_busses() < 0)
   {
-    printf(gettext("Error: I can't find busses\n"));
+    printf(gettext("Error: I can't find busses
+"));
     return -1;
   }
   if (usb_find_devices() < 0)
   {
-    printf(gettext("Error: I can't find devices\n"));
+    printf(gettext("Error: I can't find devices
+"));
     return -1;
   }
 
@@ -865,59 +901,104 @@ int main(int argc, char *argv[])
   }
   if (adsl_dev == NULL)
   {
-    printf(gettext("Error: I didn't find ADSL modem\n"));
+    printf(gettext("Error: I didn't find ADSL modem
+"));
     return -1;
   }
-  printf(gettext("I found ADSL modem with VendorID = %04x & ProductID = %04x\n"), adsl_dev->descriptor.idVendor, adsl_dev->descriptor.idProduct);
+  printf(gettext("I found ADSL modem with VendorID = %04x & ProductID = %04x
+"), adsl_dev->descriptor.idVendor, adsl_dev->descriptor.idProduct);
 
 #if DEBUG
-   printf(" bLength: 0x%02x\n", adsl_dev->config->bLength);
-   printf(" bDescriptorType: 0x%02x\n", adsl_dev->config->bDescriptorType);
-   printf(" wTotalLength: 0x%04x\n", adsl_dev->config->wTotalLength);
-   printf(" bNumInterfaces: 0x%02x\n", adsl_dev->config->bNumInterfaces);
-   printf(" bConfigurationValue: 0x%02x\n", adsl_dev->config->bConfigurationValue);
-   printf(" iConfiguration: 0x%02x\n", adsl_dev->config->iConfiguration);
-   printf(" bmAttributes: 0x%02x\n", adsl_dev->config->bmAttributes);
-   printf(" MaxPower: 0x%02x\n", adsl_dev->config->MaxPower);
-#endif
+   printf(" bLength: 0x%02x
+", adsl_dev->config->bLength);
+  if (usb_claim_interface(adsl_handle, 0) < 0)
+   printf(" bDescriptorType: 0x%02x
+", adsl_dev->config->bDescriptorType);
+   printf(" wTotalLength: 0x%04x
+", adsl_dev->config->wTotalLength);
+   printf(" bNumInterfaces: 0x%02x
+", adsl_dev->config->bNumInterfaces);
+   printf(" bConfigurationValue: 0x%02x
+", adsl_dev->config->bConfigurationValue);
+   printf(" iConfiguration: 0x%02x
+", adsl_dev->config->iConfiguration);
+  if (usb_claim_interface(adsl_handle, 1) < 0)
+   printf(" bmAttributes: 0x%02x
+", adsl_dev->config->bmAttributes);
+   printf(" MaxPower: 0x%02x
+", adsl_dev->config->MaxPower);
 
   /* connect to ADSL modem */
-  adsl_handle = usb_open(adsl_dev);
-  if (adsl_handle == NULL)
-  {
-    printf(gettext("Error: Couldn't get device handle for ADSL modem\n"));
-    return -1;
-  }
-  /* set configuration */
-  if (usb_set_configuration(adsl_handle, 1) < 0)
-  {
-    printf("Error: usb_set_configuration: %s\n", usb_strerror());
-    return -1;
-  }
-  /* check if other program is using interfaces 0, 1, 2 */
-  if (usb_claim_interface(adsl_handle, 0) < 0)
-  {
-    printf("Error: usb_claim_interface 0: %s\n", usb_strerror());
-    return -1;
-  }
-  if (usb_claim_interface(adsl_handle, 1) < 0)
-  {
-    printf("Error: usb_claim_interface 1: %s\n", usb_strerror());
-    return -1;
-  }
   if (usb_claim_interface(adsl_handle, 2) < 0)
+  r = sync_line(adsl_handle, tmodem);
+  r = load_firmware(adsl_handle, tmodem); 
+  r = first_config(adsl_handle, tmodem); 
+  if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
-    printf("Error: usb_claim_interface 2: %s\n", usb_strerror());
+  if ( ! no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
+  /* check if other program is using interfaces 0, 1, 2 */
+    r = load_firmware(adsl_handle, tmodem); 
+    r = first_config(adsl_handle, tmodem); }
+    return -1;
+  if ( ! no_claim_interface_2 && usb_claim_interface(adsl_handle, 2) < 0)
+  }
+
+  r = sync_line(adsl_handle, tmodem, MAX_WAIT_LINE_UP);
     return -1;
   }
-  PDEBUG(gettext("Interface = %d\n"), adsl_handle->interface);
+  if ( ! command_options.no_claim_interface_2 && usb_claim_interface(adsl_handle, 2) < 0)
+  usb_release_interface(adsl_handle, 0);
+  usb_release_interface(adsl_handle, 1);
+  usb_release_interface(adsl_handle, 2);
+  PDEBUG(gettext("Interface = %d
+"), adsl_handle->interface);
 
   init_modem(tmodem, adsl_dev, open_mode); 
-  r = load_firmware(adsl_handle, tmodem); 
 
-  PDEBUG(gettext("Releasing interface...\n"));
-  usb_release_interface(adsl_handle, 0);
-  PDEBUG(gettext("Releasing device...\n"));
+/* Check if the modem is working yet */
+    if (firmware)
+  if ( command_options.firmware || command_options.config ) {
+  if ( ! command_options.no_check_modem_before )
+    if (config)
+    r = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
+  else
+    r=-1;
+  if (r < 0) {
+    if (command_options.firmware) {
+    if (command_options.firmware)
+  if (sync)
+    r = sync_line(adsl_handle, tmodem, max_wait_line_up);
+	if (r < 0)
+    if (command_options.config)
+        r = first_config(adsl_handle, tmodem); }
+  if ( ! no_claim_interface_0 )
+	if (r < 0)
+  }
+  if ( ! no_claim_interface_1 )
+  
+  if (command_options.unsync_first) {
+  if ( ! no_claim_interface_2 )
+  if (command_options.unsync_first)
+    r = send_line_down_signal (adsl_handle, tmodem);
+    if ( r < 0 )
+  if ( r < 0 )
+    return r;
+
+  if (command_options.sync)
+
+  if ( r < 0 )
+    return r;
+
+  PDEBUG(gettext("Releasing interface...
+"));
+  if ( ! command_options.no_claim_interface_0 )
+     usb_release_interface(adsl_handle, 0);
+  if ( ! command_options.no_claim_interface_1 )
+    usb_release_interface(adsl_handle, 1);
+  if ( ! command_options.no_claim_interface_2 )
+    usb_release_interface(adsl_handle, 2);
+  PDEBUG(gettext("Releasing device...
+"));
   usb_close(adsl_handle);
 
   return r;

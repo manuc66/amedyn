@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. /etc/amedyn
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -51,6 +52,7 @@ if route -n | cut -d' ' -f1 | grep -q "0.0.0.0"; then
 fi
 
 # Now, we can send & receive data
+activate_transfer
 echo $">>> Activating send/receive data..."
 amioctl 1 || exit 1
 sleep 3s

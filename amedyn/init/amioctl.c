@@ -94,6 +94,7 @@ int check_modem(unsigned int vid, unsigned int pid)
   if (vid == 0x0b05 && pid == 0x6206)
     return 2;
 
+  /* Vendor = Mediacom Europe?, Product = DynaMiTe USB Modem */
   return -1;
 }
 
@@ -125,26 +126,42 @@ int main(int argc, char *argv[])
 
   /* show program information */
   printf(gettext("Zxyel 630-11 & Asus AAM6000UG ioctl call."));
-  printf(" 24/9/2003\n");
-  printf("Josep Comas <jcomas@gna.es>\n");
-  printf("Sundar <sundar@cynaptix.biz>\n");
-  printf("Eduardo Espejo <eespejo@users.sourceforge.net>\n\n");
+  printf(" 24/9/2003
+");
+  printf("Josep Comas <jcomas@gna.es>
+");
+  printf("Sundar <sundar@cynaptix.biz>
+");
+  printf("Eduardo Espejo <eespejo@users.sourceforge.net>
+
+");
+
 
   /* check parameters */
   if (argc < 2)
   {
-    printf(gettext("Usage: %s ioctl_command\n"), argv[0]);
-    printf(gettext("\nIOCTL commands:\n"));
-    printf(gettext("  1 (start, enable receive data in driver)\n"));
-    printf(gettext("  2 (stop, disable receive data in driver)\n"));
-    printf(gettext("\nExamples:\n"));
-    printf(gettext("   Enable receive data in driver: %s 1\n"), argv[0]);
-    printf(gettext("   Disable receive data in driver: %s 2\n"), argv[0]);
+    printf(gettext("Usage: %s ioctl_command
+"), argv[0]);
+    printf(gettext("
+IOCTL commands:
+"));
+    printf(gettext("  1 (start, enable receive data in driver)
+"));
+    printf(gettext("  2 (stop, disable receive data in driver)
+"));
+    printf(gettext("
+Examples:
+"));
+    printf(gettext("   Enable receive data in driver: %s 1
+"), argv[0]);
+    printf(gettext("   Disable receive data in driver: %s 2
+"), argv[0]);
     return -1;
   }
   if (strcmp(argv[1], "1") && strcmp(argv[1], "2"))
   {
-    printf(gettext("Error: invalid command: %s\n"), argv[1]);
+    printf(gettext("Error: invalid command: %s
+"), argv[1]);
     return -1;
   }
 
@@ -152,12 +169,14 @@ int main(int argc, char *argv[])
   usb_init();
   if (usb_find_busses() < 0)
   {
-    printf(gettext("Error: I can't find busses\n"));
+    printf(gettext("Error: I can't find busses
+"));
     return -1;
   }
   if (usb_find_devices() < 0)
   {
-    printf(gettext("Error: I can't find devices\n"));
+    printf(gettext("Error: I can't find devices
+"));
     return -1;
   }
 
@@ -182,23 +201,27 @@ int main(int argc, char *argv[])
   }
   if (adsl_dev == NULL)
   {
-    printf(gettext("Error: I didn't find ADSL modem\n"));
+    printf(gettext("Error: I didn't find ADSL modem
+"));
     return -1;
   }
-  printf(gettext("I found ADSL modem with VendorID = %04x & ProductID = %04x\n"),
+  printf(gettext("I found ADSL modem with VendorID = %04x & ProductID = %04x
+"),
          adsl_dev->descriptor.idVendor, adsl_dev->descriptor.idProduct);
 
   /* connect to ADSL modem */
   adsl_handle = usb_open(adsl_dev);
   if (adsl_handle == NULL)
   {
-    printf(gettext("Error: Couldn't get device handle for ADSL modem\n"));
+    printf(gettext("Error: Couldn't get device handle for ADSL modem
+"));
     return -1;
-  }
   if (usb_set_configuration(adsl_handle, 1) < 0)
   {
-    printf("Error: usb_set_configuration: %s\n", usb_strerror());
+    printf("Error: usb_set_configuration: %s
+", usb_strerror());
     return -1;
+  }
   }
 
   u_ioctl.ifno = 1;
@@ -216,7 +239,8 @@ int main(int argc, char *argv[])
 
   r = ioctl(adsl_handle->fd, USBDEVFS_IOCTL, &u_ioctl);
   if (r < 0) {
-    printf(gettext("Error in ioctl call, status = %d\n"), r);
+    printf(gettext("Error in ioctl call, status = %d
+"), r);
     usb_close(adsl_handle);
     return -1;
   }

@@ -42,30 +42,42 @@ endif
 RPM_VERSION = $(shell date +%Y_%m_%d)_$(shell echo $(DEST_KERNEL) | tr "-" "_")
 RPM_RELEASE = 1
 
+all: clean compile
 all: clean compile_install
 
-all_control: clean compile_install AME_CONTROL
-
 #install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
-compile_install: AME_INIT AME_FIRMWARE AME_MODULE AME_SCRIPTS BRIDGED
+all_control: clean compile_install AME_CONTROL
+compile: AME_INIT AME_MODULE BRIDGED AME_CONTROL
+compile: AME_INIT AME_MODULE AME_CONTROL BRIDGED
+#install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
+compile_install: AME_INIT AME_MODULE AME_SCRIPTS BRIDGED
+compile: AME_INIT AME_CONTROL
+install: AME_INIT_install AME_MODULE_install AME_SCRIPTS_install BRIDGED_install AME_CONTROL_install
+
+	cd init && make && make install
+install: AME_INIT_install AME_MODULE_install AME_SCRIPTS_install  AME_CONTROL_install BRIDGED_install
+userspace: AME_INIT AME_CONTROL
+install: AME_INIT_install AME_SCRIPTS_install  AME_CONTROL_install
+	cd amcontrol && make && make install
+	make -C module install 
 
 AME_INIT: init
-	cd init && make && make install
-
-AME_CONTROL:
-	cd amcontrol && make && make install
-
-AME_FIRMWARE:
-	cd firmware && make
-
-AME_MODULE: module
 	cd module && make && make install
+	cd init && make
 
-AME_SCRIPTS: scripts
+	cd module && make
+AME_CONTROL:
+	cd amcontrol && make
+
+	cd bridged && make && make install
+	cd module && make install
+
+AME_SCRIPTS_install: scripts
 	cd scripts && make
 
-BRIDGED: bridged
-	cd bridged && make && make install
+BRIDGED_install: bridged
+	cd bridged && make install
+
 
 package: clean
 	cd .. && tar -zcvf ${TGZ_SRC_NAME} amedyn
@@ -94,8 +106,7 @@ rpm: clean compile_install
 	mv -f /etc/amedyn.config /etc/amedyn
 
 #uninstall: firmware init module scripts panel bridged
-uninstall: firmware init module scripts bridged
-	cd firmware && make uninstall
+uninstall: init module scripts bridged
 	cd init && make uninstall
 	cd module && make uninstall
 	cd scripts && make uninstall

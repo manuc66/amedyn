@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. /etc/amedyn
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -8,6 +9,7 @@ TEXTDOMAIN=`basename $0`
 echo $">>> Down PPPoE network interface <<<"
 echo
 
+stop_transfer
 if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then 
   echo $">>> Stopping transfers..."
   amioctl 2
@@ -25,8 +27,9 @@ if [ "$PPPOE" = "" ]; then
 else
   if [ -x /usr/bin/poff ]; then
     poff dsl-provider 
-  else
     adsl-stop
+	pppoe-stop
+    fi
   fi
 fi
 

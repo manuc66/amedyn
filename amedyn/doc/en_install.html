@@ -8,10 +8,12 @@
   <style type="text/css">
 <!--
 
+body { background-color: #E5E5E5;}
 body { background-color: #E5E5E5;
 }
 /* General font families for common tags */
 font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+
 a:link,a:active,a:visited { color : #006699; }
 a:hover { text-decoration: underline; color : #DD6900; }
 hr { height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
@@ -80,6 +82,7 @@ none; line-height : 120%; color : #000000;
 a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
 a.gen:hover,a.genmed:hover,a.gensmall:hover { color: #DD6900;
 text-decoration: underline; }
+
 /* The register, login, search etc links at the top of the page */
 .mainmenu { font-size : 11px; color : #000000 }
 a.mainmenu { text-decoration: none; color : #006699; }
@@ -174,6 +177,7 @@ rp-pppoe (IF you are using pppoe)<br>
 libusb <br>
 libusb-dev <br>
 linux-atm <br>
+popt <br>
       <br>
       </td>
     </tr>
@@ -183,6 +187,7 @@ linux-atm <br>
 </span><br>
 2) 
 Copy the amedyn-200x-xx-xx-src.tgz to /usr.
+2) Copy the amedyn-200x-xx-xx-src.tgz to /usr.
 Type the following command in a shell : <br>
 <span class="postbody"><br>
 </span>
@@ -275,6 +280,7 @@ Replace the &lt;tab&gt; with a tabulation key.<br>
 Replace with your username/password.
 <br>
 <br>
+<br>
 5) edit /etc/ppp/options and write: <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
@@ -305,13 +311,15 @@ lcp-echo-failure 7 <br>
 name username<br>
 user username<br>
 plugin usr/lib/pppd/VERSION/pppoatm.so <br>
+plugin /usr/lib/pppd/VERSION/pppoatm.so <br>
 VPI.VCI <br>
       </td>
     </tr>
   </tbody>
-</table>
-<br>
 replace the username with your username and VPI.VCI with the ones your ISP told you (e.g. 8.35) and VERSION with your pppd's version (e.g. 2.4.1 or 2.4.2)
+replace the username with your username and VPI.VCI with the ones your
+ISP told you (e.g. 8.35) and VERSION with your pppd's version (e.g.
+2.4.1 or 2.4.2)
 <br>
 <br>
 6) Now to connect type amstart.sh and you should see the
@@ -351,10 +359,11 @@ adress (if it fails jump to step 7)<br>
     </tr>
   </tbody>
 </table>
-<br>
-<br>
 if the host is unreachable then edit /etc/resolve.conf and /etc/ppp/resolve(if you want you can replace this file and put a link to /etc/resolve.conf ,
 to do that type as a root <br>ln -sf /etc/resolve.conf /etc/ppp/resolve )
+to /etc/resolve.conf ,
+to do that type as a root <br>
+ln -sf /etc/resolve.conf /etc/ppp/resolve )
 .conf and add something like this : <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
@@ -398,9 +407,10 @@ in the directory /usr/amedyn/init and use change this :<br>
 #define UDSL_DEFAULT_SND_BUF_SIZE 32</td>
     </tr>
   </tbody>
-</table>
-<br>
 8) if you want your computer to start the connection at boot type in the /usr/amedyn
+<br>
+8) if you want your computer to start the connection at boot type in
+the /usr/amedyn
 dir as root : <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
@@ -408,21 +418,25 @@ dir as root : <br>
   <tbody>
     <tr>
       <td><span class="genmed"><b>Quote:</b></span></td>
-    </tr>
-    <tr>
       <td class="quote">make add_service
       </td>
     </tr>
+    <tr>
+      <td class="quote">make add_service </td>
+    </tr>
   </tbody>
-</table>
-<br>
 9) for more help please got to forum on <a href="http://sourceforge.net/forum/?group_id=84006">sourcefoge's zyxel 630-11 project</a>
 page and also have look at /var/log/message and /var/log/syslog to try to
-detect some error (please don't post these files on the forum!!!)<br>
+630-11 project</a>
+page and also have look at /var/log/message and /var/log/syslog to try
 <br> <br> <br>
-Credits for this doc : <br>
+<br>
+<br>
 All documents posted before for inspiration, <a href="mailto:manuc66 [at] yahoo . fr">manuc66</a>  and <a href="mailto:max87 [at] gmx . net">max4ever</a>
+All documents posted before for inspiration, <a
+ href="mailto:manuc66%20%5Bat%5D%20yahoo%20.%20fr">manuc66</a> and <a
+
+
+ href="mailto:max87%20%5Bat%5D%20gmx%20.%20net">max4ever</a>
 </body>
 </html>
-
-

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+. /etc/amedyn
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -30,12 +31,14 @@ remove_controller() {
 echo $">>> Remove $MODULE_NAME/$MODULE_NAMEDBG driver <<<"
 echo
 
+remove_module
 #if lsmod | cut -d' ' -f1 | grep -q -E "^$MODULE_NAME|$MODULE_NAMEDBG$"; then
 #  echo $">>> Closing ADSL line..."
 #  ($IOCTL_NAME 5 && echo && sleep 4s)
 #fi
-
 driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|$MODULE_NAMEDBG$"`
+
+driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|xusbatm|$MODULE_NAMEDBG$"`
 if [ "$driver" != "" ]; then
   echo $">>> Removing $driver..."
   (rmmod $driver && echo && sleep 1s ) || remove_controller
