@@ -794,6 +794,15 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
   
   /* reset command queries */
   //memset(modem_cmd_state, 0, sizeof(modem_cmd_state));
+
+	    POPT_ARG_NONE, &no_claim_interface_1, 0,
+            "Send line down signal before sync line.",  ""},
+        { NULL,     '0',
+	    POPT_ARG_NONE, &command_options.no_claim_interface_0, 0,
+	    POPT_ARG_NONE, &no_claim_interface_2, 0,
+            "Don't claim interface 0. (Debug option)",  ""},
+        { NULL,     '1',
+	    POPT_ARG_NONE, &command_options.no_claim_interface_1, 0,
             "Don't claim interface 1. (Debug option)",  ""},
         { NULL,     '2',
 	    POPT_ARG_NONE, &command_options.no_claim_interface_2, 0,

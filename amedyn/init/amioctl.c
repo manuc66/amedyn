@@ -136,6 +136,16 @@ int main(int argc, char *argv[])
 
 ");
 
+  /*
+  * Security stuff
+  * 1 - be sure to be root
+  * 2 - umask to prevent critical data being read from log file
+  */
+  if(geteuid() != 0) {
+    fprintf(stderr, "WARNING: amioctl must be run with root privileges
+");
+    exit (-1);
+  }
 
   /* check parameters */
   if (argc < 2)
