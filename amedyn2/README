@@ -22,7 +22,6 @@ Before test this new package:
 	    General setup ---->
 		[*] Support for hot-pluggable devices
 		[*] Kernel Userspace Events
-	- You need two firmware file, both in /lib/firmware/:
 
 	- You need two firmware file, both in:
 		- First stage firmware: Init-usb.bin
@@ -33,9 +32,12 @@ Before test this new package:
 			Remember save it as Init-usb.bin
 
 		- Second stage firmware: fw-usb.bin or  Fw-usb_A.bin
-			in your amdeyn package. Copy it to /lib/firmware/
+			If you allready are using the modem you have this file
+			in your amdeyn package.
+			
 		- Copy all this firmware files to /lib/firmware/
 
+		- Copy all this firmware files to /lib/firmware/ and
 		    /usr/lib/hotplug/firmware/
 		    You need: Init-usb.bin, fw-usb.bin Fw-usb_A.bin
 		    
