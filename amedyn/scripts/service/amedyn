@@ -37,13 +37,13 @@ fi
 RETVAL=0
 
 start() {
-        /usr/sbin/cxstart.sh service
+        /usr/sbin/amstart.sh service
 	RETVAL=$?
 	return $RETVAL
 }
 
 stop() {
-        /usr/sbin/cxstop.sh service
+        /usr/sbin/amstop.sh service
 	RETVAL=$?
 	return $RETVAL
 }

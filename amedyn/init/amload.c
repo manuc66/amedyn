@@ -35,6 +35,9 @@
 
   24/9/2003 Josep Comas
   Commented blinking leds
+
+  12/10/2003 Mathias Gug
+  Fix claim interfaces 0, 1
 */
 
 
@@ -543,6 +546,7 @@ int load_firmware(usb_dev_handle *adsl_handle, unsigned int tmodem)
 
   /* set AFE value, R_Function_Code = 0x15 (adjust Alcatel DSP for our configuration) */
   /* 0x1fd in CTRLE protocol */
+  /* 0x15 = analog line, 0x11 ISDN line */
   buf[0] = 0x15;
   len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x1fd, buf, 1);
   if (len < 0)
@@ -736,7 +740,7 @@ int main(int argc, char *argv[])
 
   /* show program information */
   printf(gettext("Zyxel 630-11 & Asus AAM6000UG microcode upload program."));
-  printf(" 24/9/2003\n");
+  printf(" 12/10/2003\n");
   printf("Josep Comas <jcomas@gna.es>\n");
   printf("Sundar <sundar@cynaptix.biz>\n\n");
 
@@ -821,11 +825,20 @@ int main(int argc, char *argv[])
     printf("Error: usb_set_configuration: %s\n", usb_strerror());
     return -1;
   }
-  /* check if other program is using interface 2 */
-//  if (usb_claim_interface(adsl_handle, 0) < 0)
+  /* check if other program is using interfaces 0, 1, 2 */
+  if (usb_claim_interface(adsl_handle, 0) < 0)
+  {
+    printf("Error: usb_claim_interface 0: %s\n", usb_strerror());
+    return -1;
+  }
+  if (usb_claim_interface(adsl_handle, 1) < 0)
+  {
+    printf("Error: usb_claim_interface 1: %s\n", usb_strerror());
+    return -1;
+  }
   if (usb_claim_interface(adsl_handle, 2) < 0)
   {
-    printf("Error: usb_claim_interface: %s\n", usb_strerror());
+    printf("Error: usb_claim_interface 2: %s\n", usb_strerror());
     return -1;
   }
   PDEBUG(gettext("Interface = %d\n"), adsl_handle->interface);

@@ -12,6 +12,14 @@ To test software:
 .- Launch amstart.sh to start connection and amstop.sh to stop connection. Right order: amstart.sh -> amstop.sh -> solve problems -> amstart.sh -> amstop.sh
 .- If all is ok then you can install a service to launch automatic starter with make add_service into /usr/amedyn directory. You can remove service typing make remove_service
 
+Notes:
+.- You can get linux-atm*.rpm package from http://sourceforge.net/projects/accessrunner
+.- If you have this error:
+/usr/sbin/br2684ctl: error while loading shared libraries: libatm.so.1: cannot open shared object file: No such file or directory
+Then you need edit /etc/ld.so.conf file and add /usr/local/lib then you must launch ldconfig program
+.- If you have problems with rp-pppoe then remove /etc/ppp/options file and after launch adsl-setup program
+.- If you have an ISDN line then you must change buf[0] = 0x15; by buf[0] = 0x11; in amload.c file
+
 Regards,
   Josep Comas (jcomas@gna.es)
 
