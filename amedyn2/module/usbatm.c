@@ -42,10 +42,8 @@
  *  		- Various fixes by Oliver Neukum (oliver@neukum.name)
  *
  *  1.5A:	- Version for inclusion in 2.5 series kernel
- *		udsl_usb_send_data_context->urb to a pointer and adding code
  *		- Modifications by Richard Purdie (rpurdie@rpsys.net)
  *		- made compatible with kernel 2.5.6 onwards by changing
- *		- remove_wait_queue() added to udsl_atm_processqueue_thread()
  *		usbatm_usb_send_data_context->urb to a pointer and adding code
  *		to alloc and free it
  *		- remove_wait_queue() added to usbatm_atm_processqueue_thread()
@@ -60,7 +58,6 @@
  *
  *  1.3:	- Added multiple send urb support
  *		- fixed memory leak and vcc->tx_inuse starvation bug
- *  1.2:	- Fixed race condition in udsl_usb_send_data()
  *		  when not enough memory left in vcc.
  *
  *  1.2:	- Fixed race condition in usbatm_usb_send_data()
@@ -92,8 +89,7 @@
 #include <linux/atmdev.h>
 #include <linux/crc32.h>
 #include <linux/init.h>
-static int udsl_print_packet(const unsigned char *data, int len);
-#define PACKETDEBUG(arg...)	udsl_print_packet (arg)
+#include <linux/firmware.h>
 #include <linux/config.h>
 
 #include "usb_atm.h"
@@ -152,20 +148,19 @@ MODULE_PARM_DESC(num_snd_bufs,
 module_param(rcv_buf_size, uint, 0444);
 
 module_param(num_snd_urbs, uint, S_IRUGO);
-static void udsl_atm_dev_close(struct atm_dev *dev);
-static int udsl_atm_open(struct atm_vcc *vcc);
-static void udsl_atm_close(struct atm_vcc *vcc);
-static int udsl_atm_ioctl(struct atm_dev *dev, unsigned int cmd, void __user * arg);
-static int udsl_atm_send(struct atm_vcc *vcc, struct sk_buff *skb);
-static int udsl_atm_proc_read(struct atm_dev *atm_dev, loff_t * pos, char *page);
-
-static struct atmdev_ops udsl_atm_devops = {
-	.dev_close	= udsl_atm_dev_close,
-	.open		= udsl_atm_open,
-	.close		= udsl_atm_close,
-	.ioctl		= udsl_atm_ioctl,
-	.send		= udsl_atm_send,
-	.proc_read	= udsl_atm_proc_read,
+		 "Size of the buffers used for reception (range: 0-"
+MODULE_PARM_DESC(num_snd_urbs,
+		 "Number of urbs used for transmission (range: 0-"
+		 __MODULE_STRING(UDSL_MAX_SND_URBS) ", default: "
+		 __MODULE_STRING(UDSL_DEFAULT_SND_URBS) ")");
+module_param(snd_buf_size, uint, 0444);
+		 "Size of the buffers used for reception in ATM cells (range: 1-"
+		 __MODULE_STRING(UDSL_MAX_RCV_BUF_SIZE) ", default: "
+		 "Size of the buffers used for transmission (range: 0-"
+MODULE_PARM_DESC(rcv_buf_size,
+module_param(rcv_buf_bytes, uint, S_IRUGO);
+MODULE_PARM_DESC(rcv_buf_bytes,
+		 "Size of the buffers used for reception, in bytes (range: 1-"
 
 
 /* send */
@@ -198,7 +193,6 @@ struct driver_info {
 #ifdef	CONFIG_USB_CXACRU
 #define	HAVE_HARDWARE
 static const struct driver_info cxacru_info = {
-static inline void udsl_pop(struct atm_vcc *vcc, struct sk_buff *skb)
 	.description =  "Conexant AccessRunner",
 };
 #endif
@@ -211,11 +205,9 @@ static const struct driver_info speedtouch_info = {
 #endif
 static void usbatm_atm_close(struct atm_vcc *vcc);
 static int usbatm_atm_ioctl(struct atm_dev *atm_dev, unsigned int cmd, void __user * arg);
-static inline struct udsl_vcc_data *udsl_find_vcc(struct udsl_instance_data *instance,
 static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_instance_data *instance,
 static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb);
 static int usbatm_atm_proc_read(struct atm_dev *atm_dev, loff_t * pos, char *page);
-	struct udsl_vcc_data *vcc;
 
 static struct atmdev_ops usbatm_atm_devops = {
 	.send		= usbatm_atm_send,
@@ -224,15 +216,12 @@ static struct atmdev_ops usbatm_atm_devops = {
 };
 
 /***********
-static void udsl_extract_cells(struct udsl_instance_data *instance,
 **  misc  **
 static void usbatm_extract_cells(struct usbatm_instance_data *instance,
 ***********/
-	struct udsl_vcc_data *cached_vcc = NULL;
 
 	unsigned long flags;
 
-	struct udsl_vcc_data *vcc_data;
 			__func__, source[ATM_CELL_HEADER], source[ATM_CELL_HEADER + 1]);
 		return -EPROTO;
 		atm_dbg(instance, "%s: OAM CRC10 error!
@@ -248,18 +237,15 @@ static void usbatm_extract_cells(struct usbatm_instance_data *instance,
 	buffer = urb->transfer_buffer;
 	memcpy(buffer, source, ATM_CELL_SIZE);
 
-		vdbg("udsl_extract_cells: vpi %hd, vci %d, pti %d", vpi, vci, pti);
  
 	buffer[ATM_CELL_HEADER + 1] = 0;	/* update the direction field */
 			       unsigned char *source, unsigned int howmany)
 	
-		else if ((vcc_data = udsl_find_vcc(instance, vpi, vci))) {
 	memset(buffer + ATM_CELL_SIZE - 2, 0, 2);
 	
 	crc = crc10(0, buffer + ATM_CELL_HEADER, ATM_CELL_PAYLOAD);
 	buffer[ATM_CELL_SIZE - 2] = (crc >> 8) & 0x3;
 	struct usbatm_vcc_data *vcc_data;
-			dbg("udsl_extract_cells: unknown vpi/vci (%hd/%d)!", vpi, vci);
 	int cached_vci = 0;
 	unsigned int i;
 	int pti;
@@ -268,7 +254,6 @@ static void usbatm_extract_cells(struct usbatm_instance_data *instance,
 	short vpi;
 	urb->transfer_buffer_length = instance->tx_channel.stride;
 	return usbatm_submit_urb(urb);
-			dbg("udsl_extract_cells: buffer overrun (sarb->len %u, vcc: 0x%p)!", sarb->len, vcc);
 	for (i = 0; i < howmany;
 	     i++, source += ATM_CELL_SIZE + instance->rx_padding) {
 		vpi = ((source[0] & 0x0f) << 4) | (source[1] >> 4);
@@ -286,7 +271,6 @@ static void usbatm_extract_cells(struct usbatm_instance_data *instance,
 			cached_vcc = vcc_data;
 static void usbatm_extract_cells(struct usbatm_data *instance,
 			       unsigned char *source, unsigned int avail_data)
-				dbg("udsl_extract_cells: bogus length %u (vcc: 0x%p)!", length, vcc);
 static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_data *instance,
 		} else {
 			dbg("usbatm_extract_cells: unknown vpi/vci (%hd/%d)!", vpi, vci);
@@ -296,35 +280,29 @@ static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_data *instan
 			atm_warn(instance, "%s: OAM not supported (vpi %d, vci %d)!
 ", __func__, vpi, vci);
 		vcc = vcc_data->vcc;
-				dbg("udsl_extract_cells: bogus pdu_length %u (sarb->len: %u, vcc: 0x%p)!", pdu_length, sarb->len, vcc);
 		sarb = vcc_data->sarb;
 			atomic_inc(&vcc->stats->rx_err);
 			cached_vci = vci;
 	struct sk_buff *sarb;
 			dbg("usbatm_extract_cells: buffer overrun (sarb->len %u, vcc: 0x%p)!", sarb->len, vcc);
 			cached_vcc = usbatm_find_vcc(instance, vpi, vci);
-				dbg("udsl_extract_cells: packet failed crc check (vcc: 0x%p)!", vcc);
 
 	vdbg("%s: vpi %hd, vci %d, pti %d", __func__, vpi, vci, pti);
 			if (!cached_vcc)
 				atm_dbg(instance, "%s: unknown vpi/vci (%hd/%d)!
 ", __func__, vpi, vci);
 //		atomic_inc(&vcc->stats->rx_err);
-			vdbg("udsl_extract_cells: got packet (length: %u, pdu_length: %u, vcc: 0x%p)", length, pdu_length, vcc);
 //		return;
 
 	/* OAM F5 end-to-end */
-				dbg("udsl_extract_cells: no memory for skb (length: %u)!", length);
 		if (pti) {
 		if (!cached_vcc)
 			continue;
 
 		vcc = cached_vcc->vcc;
-			vdbg("udsl_extract_cells: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", skb, skb->truesize);
 	if (pti == ATM_PTI_E2EF5) {
 		if (printk_ratelimit())
 		/* OAM F5 end-to-end */
-				dbg("udsl_extract_cells: failed atm_charge (skb->truesize: %u)!", skb->truesize);
 		if (pti == ATM_PTI_E2EF5) {
 			if (usbatm_oam_reply(instance, source)) {
 				dbg("usbatm_extract_cells: bogus length %u (vcc: 0x%p)!", length, vcc);
@@ -333,7 +311,6 @@ static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_data *instan
 			continue;
 	memcpy(skb_tail_pointer(sarb), source + ATM_CELL_HEADER, ATM_CELL_PAYLOAD);
 	__skb_put(sarb, ATM_CELL_PAYLOAD);
-			vdbg("udsl_extract_cells: sending skb 0x%p, skb->len %u, skb->truesize %u", skb, skb->len, skb->truesize);
 			pdu_length = UDSL_NUM_CELLS(length) * ATM_CELL_PAYLOAD;
 
 		sarb = cached_vcc->sarb;
@@ -352,7 +329,6 @@ static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_data *instan
 		memcpy(sarb->tail, source + ATM_CELL_HEADER, ATM_CELL_PAYLOAD);
 		__skb_put(sarb, ATM_CELL_PAYLOAD);
 
-static inline void udsl_fill_cell_header(unsigned char *target, struct atm_vcc *vcc)
 			vdbg("usbatm_extract_cells: got packet (length: %u, pdu_length: %u, vcc: 0x%p)", length, pdu_length, vcc);
 		pdu_length = usbatm_pdu_length(length);
 		if (pti & 1) {
@@ -364,10 +340,8 @@ static inline void udsl_fill_cell_header(unsigned char *target, struct atm_vcc *
 			length = (source[ATM_CELL_SIZE - 6] << 8) + source[ATM_CELL_SIZE - 5];
 
 			vdbg("usbatm_extract_cells: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", skb, skb->truesize);
-static void udsl_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 			/* guard against overflow */
 			if (length > ATM_MAX_AAL5_PDU) {
-	struct udsl_control *ctrl = UDSL_SKB(skb);
 				atm_dbg(instance, "%s: bogus length %u (vcc: 0x%p)!
 ",
 				dbg("usbatm_extract_cells: failed atm_charge (skb->truesize: %u)!", skb->truesize);
@@ -405,17 +379,14 @@ static void udsl_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 static inline void usbatm_fill_cell_header(unsigned char *target, struct atm_vcc *vcc)
 {
 	target[0] = vcc->vpi >> 4;
-static unsigned int udsl_write_cells(struct udsl_instance_data *instance,
 	target[1] = (vcc->vpi << 4) | (vcc->vci >> 12);
 	target[2] = vcc->vci >> 4;
 	target[3] = vcc->vci << 4;
 static unsigned int usbatm_write_cells(struct usbatm_instance_data *instance,
-	struct udsl_control *ctrl = UDSL_SKB(skb);
 	target[4] = 0xec;
 }
 
 static const unsigned char zeros[ATM_CELL_PAYLOAD];
-	vdbg("udsl_write_cells: howmany=%u, skb->len=%d, num_cells=%u, num_entire=%u, pdu_padding=%u", howmany, skb->len, ctrl->num_cells, ctrl->num_entire, ctrl->pdu_padding);
 
 static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 				atm_dbg(instance, "%s: no memory for skb (length: %u)!
@@ -423,7 +394,6 @@ static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 				atomic_inc(&vcc->stats->rx_drop);
 				goto out;
 	unsigned int zero_padding;
-		udsl_fill_cell_header(target, ctrl->atm_data.vcc);
 	u32 crc;
 		}
 			vdbg("%s: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", __func__, skb, skb->truesize);
@@ -440,7 +410,6 @@ static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 
 	if (ctrl->num_entire + 1 < ctrl->num_cells)
 		ctrl->pdu_padding = zero_padding - (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER);
-	udsl_fill_cell_header(target, ctrl->atm_data.vcc);
 	else
 		ctrl->pdu_padding = zero_padding;
 			atomic_inc(&vcc->stats->rx);
@@ -459,7 +428,6 @@ static void usbatm_groom_skb(struct atm_vcc *vcc, struct sk_buff *skb)
 		if (instance->snd_padding) {
 			memset(target, 0, instance->snd_padding);
 			target += instance->snd_padding;
-		udsl_fill_cell_header(target, ctrl->atm_data.vcc);
 	ctrl->aal5_trailer[7] = crc;
 }
 		} else {
@@ -486,17 +454,14 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 		target += ATM_CELL_HEADER;
 		memcpy(target, skb->data, ATM_CELL_PAYLOAD);
 		target += ATM_CELL_PAYLOAD;
-static void udsl_complete_receive(struct urb *urb, struct pt_regs *regs)
 		if (instance->tx_padding) {
 			memset(target, 0, instance->tx_padding);
-	struct udsl_receive_buffer *buf;
-	struct udsl_instance_data *instance;
-	struct udsl_receiver *rcv;
+			target += instance->tx_padding;
+	if (avail_data > 0) {
 		/* length was not a multiple of stride -
 		__skb_pull(skb, ATM_CELL_PAYLOAD);
 		memcpy(instance->cell_buf, source, avail_data);
 		instance->buf_usage = avail_data;
-		dbg("udsl_complete_receive: bad urb!");
 	}
 	ctrl->num_entire -= ne;
 	struct usbatm_instance_data *instance;
@@ -506,7 +471,6 @@ static void udsl_complete_receive(struct urb *urb, struct pt_regs *regs)
 
 	usbatm_fill_cell_header(target, ctrl->atm_data.vcc);
 	target += ATM_CELL_HEADER;
-	vdbg("udsl_complete_receive: urb 0x%p, status %d, actual_length %d, filled_cells %u, rcv 0x%p, buf 0x%p", urb, urb->status, urb->actual_length, buf->filled_cells, rcv, buf);
 	memcpy(target, skb->data, skb->len);
 	target += skb->len;
 	buf->filled_cells = urb->actual_length / (ATM_CELL_SIZE + instance->rcv_padding);
@@ -520,12 +484,10 @@ static void udsl_complete_receive(struct urb *urb, struct pt_regs *regs)
 			goto out;
 		}
 
-static void udsl_process_receive(unsigned long data)
 		if (instance->tx_padding) {
 			memset(target, 0, instance->tx_padding);
-	struct udsl_receive_buffer *buf;
-	struct udsl_instance_data *instance = (struct udsl_instance_data *)data;
-	struct udsl_receiver *rcv;
+			target += instance->tx_padding;
+		}
 		usbatm_fill_cell_header(target, ctrl->atm_data.vcc);
 		target += ATM_CELL_HEADER;
 		memset(target, 0, ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER);
@@ -537,13 +499,11 @@ static void udsl_process_receive(unsigned long data)
 	struct usbatm_instance_data *instance = (struct usbatm_instance_data *)data;
 
 	memcpy(target, ctrl->aal5_trailer, ATM_AAL5_TRAILER);
-				 struct udsl_receiver, list);
 	target += ATM_AAL5_TRAILER;
 	/* set pti bit in last cell */
 	*(target + 3 - ATM_CELL_SIZE) |= 0x2;
 	if (instance->tx_padding) {
 		memset(target, 0, instance->tx_padding);
-				 struct udsl_receive_buffer, list);
 		target += instance->tx_padding;
 	}
  out:
@@ -553,15 +513,12 @@ static void udsl_process_receive(unsigned long data)
 
 
 /*************
-				  udsl_complete_receive, rcv);
 **  encode  **
 *************/
-		vdbg("udsl_process_receive: sending urb 0x%p, rcv 0x%p, buf 0x%p",
 	for (num_written = 0; num_written < avail_space && ctrl->len;
 static void usbatm_complete_receive(struct urb *urb, struct pt_regs *regs)
 				  rcv_buf_size * (ATM_CELL_SIZE + instance->rcv_padding),
 	     num_written += stride, target += stride) {
-			dbg("udsl_process_receive: urb submission failed (%d)!", err);
 static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 	struct usbatm_receive_buffer *buf;
 	struct usbatm_data *instance;
@@ -577,13 +534,11 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 	unsigned int bytes_written;
 	instance = rcv->instance;
 	buf = rcv->buffer;
-			 struct udsl_receive_buffer, list);
 
 		ptr[0] = vcc->vpi >> 4;
 	buf->filled_cells = urb->actual_length / (ATM_CELL_SIZE + instance->rx_padding);
 
-	vdbg("udsl_process_receive: processing buf 0x%p", buf);
-	udsl_extract_cells(instance, buf->base, buf->filled_cells);
+	vdbg("usbatm_complete_receive: urb 0x%p, status %d, actual_length %d, filled_cells %u, rcv 0x%p, buf 0x%p", urb, urb->status, urb->actual_length, buf->filled_cells, rcv, buf);
 
 	UDSL_ASSERT(buf->filled_cells <= rcv_buf_size);
 
@@ -593,21 +548,17 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 	list_add_tail(&buf->list, &instance->filled_receive_buffers);
 	if (likely(!urb->status))
 		tasklet_schedule(&instance->receive_tasklet);
-static void udsl_complete_send(struct urb *urb, struct pt_regs *regs)
 	spin_unlock_irqrestore(&instance->receive_lock, flags);
 		ptr[3] = vcc->vci << 4;
-	struct udsl_instance_data *instance;
-	struct udsl_sender *snd;
+		ptr[4] = 0xec;
 static void usbatm_process_receive(unsigned long data)
 {
 	struct usbatm_receive_buffer *buf;
 	struct usbatm_data *instance = (struct usbatm_data *)data;
-		dbg("udsl_complete_send: bad urb!");
 	struct usbatm_receiver *rcv;
 	int err;
 
  made_progress:
-	vdbg("udsl_complete_send: urb 0x%p, status %d, snd 0x%p, buf 0x%p", urb,
 	while (!list_empty(&instance->spare_receive_buffers)) {
 		spin_lock_irq(&instance->receive_lock);
 	struct usbatm_instance_data *instance;
@@ -619,14 +570,11 @@ static void usbatm_process_receive(unsigned long data)
 				 struct usbatm_receiver, list);
 		list_del(&rcv->list);
 		spin_unlock_irq(&instance->receive_lock);
-static void udsl_process_send(unsigned long data)
 
 		buf = list_entry(instance->spare_receive_buffers.next,
-	struct udsl_send_buffer *buf;
-	struct udsl_instance_data *instance = (struct udsl_instance_data *)data;
+				 struct usbatm_receive_buffer, list);
 		list_del(&buf->list);
 
-	struct udsl_sender *snd;
 		rcv->buffer = buf;
 
 		usb_fill_bulk_urb(rcv->urb, instance->usb_dev,
@@ -636,7 +584,6 @@ static void udsl_process_send(unsigned long data)
 				  usbatm_complete_receive, rcv);
 
 		vdbg("usbatm_process_receive: sending urb 0x%p, rcv 0x%p, buf 0x%p",
-					 struct udsl_send_buffer, list);
 		     rcv->urb, rcv, buf);
 	struct usbatm_instance_data *instance = (struct usbatm_instance_data *)data;
 
@@ -645,7 +592,6 @@ static void udsl_process_send(unsigned long data)
 			list_add(&buf->list, &instance->spare_receive_buffers);
 			spin_lock_irq(&instance->receive_lock);
 			list_add(&rcv->list, &instance->spare_receivers);
-				 struct udsl_sender, list);
 			spin_unlock_irq(&instance->receive_lock);
 			break;
 		}
@@ -655,15 +601,12 @@ static void udsl_process_send(unsigned long data)
 	if (list_empty(&instance->filled_receive_buffers)) {
 		spin_unlock_irq(&instance->receive_lock);
 		return;		/* done - no more buffers */
-				  udsl_complete_send, snd);
 	}
 	buf = list_entry(instance->filled_receive_buffers.next,
-		vdbg("udsl_process_send: submitting urb 0x%p (%d cells), snd 0x%p, buf 0x%p",
 				  (snd_buf_size - buf->free_cells) * (ATM_CELL_SIZE + instance->snd_padding),
 			 struct usbatm_receive_buffer, list);
 	list_del(&buf->list);
 	spin_unlock_irq(&instance->receive_lock);
-			dbg("udsl_process_send: urb submission failed (%d)!", err);
 
 	vdbg("usbatm_process_receive: processing buf 0x%p", buf);
 	usbatm_extract_cells(instance, buf->base, buf->filled_cells);
@@ -691,7 +634,6 @@ static void usbatm_complete_send(struct urb *urb, struct pt_regs *regs)
 	     urb->status, snd, snd->buffer);
 
 	/* may not be in_interrupt() */
-			       struct udsl_send_buffer, list);
 	spin_lock_irqsave(&instance->send_lock, flags);
 	list_add(&snd->list, &instance->spare_senders);
 	list_add(&snd->buffer->list, &instance->spare_send_buffers);
@@ -702,10 +644,8 @@ static void usbatm_complete_send(struct urb *urb, struct pt_regs *regs)
 static void usbatm_process_send(unsigned long data)
 
 	struct usbatm_send_buffer *buf;
-	num_written = udsl_write_cells(instance, buf->free_cells, skb, &buf->free_start);
 		if(!left)
 			continue;
-	vdbg("udsl_process_send: wrote %u cells from skb 0x%p to buffer 0x%p",
 	struct sk_buff *skb;
 	struct usbatm_sender *snd;
 	int err;
@@ -714,14 +654,12 @@ static void usbatm_process_send(unsigned long data)
  made_progress:
 	spin_lock_irq(&instance->send_lock);
 	while (!list_empty(&instance->spare_senders)) {
-	vdbg("udsl_process_send: buffer contains %d cells, %d left",
 		if (!list_empty(&instance->filled_send_buffers)) {
 			buf = list_entry(instance->filled_send_buffers.next,
 					 struct usbatm_send_buffer, list);
 			list_del(&buf->list);
 		} else if ((buf = instance->current_buffer)) {
 			instance->current_buffer = NULL;
-		udsl_pop(vcc, skb);
 		} else		/* all buffers empty */
 			break;
 
@@ -731,66 +669,53 @@ static void usbatm_process_send(unsigned long data)
 		spin_unlock_irq(&instance->send_lock);
 
 		snd->buffer = buf;
-static void udsl_cancel_send(struct udsl_instance_data *instance,
 		usb_fill_bulk_urb(snd->urb, instance->usb_dev,
 				  usb_sndbulkpipe(instance->usb_dev, instance->data_endpoint),
 				  buf->base,
 				  (snd_buf_size - buf->free_cells) * (ATM_CELL_SIZE + instance->tx_padding),
 				  usbatm_complete_send, snd);
-	dbg("udsl_cancel_send entered");
 
 		vdbg("usbatm_process_send: submitting urb 0x%p (%d cells), snd 0x%p, buf 0x%p",
 		     snd->urb, snd_buf_size - buf->free_cells, snd, buf);
 
 		if ((err = usb_submit_urb(snd->urb, GFP_ATOMIC)) < 0) {
 			dbg("usbatm_process_send: urb submission failed (%d)!", err);
-			dbg("udsl_cancel_send: popping skb 0x%p", skb);
 			spin_lock_irq(&instance->send_lock);
 			list_add(&snd->list, &instance->spare_senders);
-			udsl_pop(vcc, skb);
 			spin_unlock_irq(&instance->send_lock);
 static void usbatm_cancel_send(struct usbatm_instance_data *instance,
 			list_add(&buf->list, &instance->filled_send_buffers);
 			return;	/* bail out */
 			trailer[7] = ctrl->crc;
 
-		dbg("udsl_cancel_send: popping current skb (0x%p)", skb);
 			target[3] |= 0x2;	/* adjust PTI */
 		spin_lock_irq(&instance->send_lock);
-		udsl_pop(vcc, skb);
 	}			/* while */
 	spin_unlock_irq(&instance->send_lock);
 
-	dbg("udsl_cancel_send done");
 	if (!instance->current_skb)
 		instance->current_skb = skb_dequeue(&instance->sndqueue);
 	if (!instance->current_skb)
-static int udsl_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		return;		/* done - no more skbs */
 
-	struct udsl_instance_data *instance = vcc->dev->dev_data;
 	skb = instance->current_skb;
 
 	if (!(buf = instance->current_buffer)) {
-	vdbg("udsl_atm_send called (skb 0x%p, len %u)", skb, skb->len);
 		spin_lock_irq(&instance->send_lock);
 		if (list_empty(&instance->spare_send_buffers)) {
 			instance->current_buffer = NULL;
-		dbg("udsl_atm_send: NULL data!");
 			spin_unlock_irq(&instance->send_lock);
 			return;	/* done - no more buffers */
 		}
 		buf = list_entry(instance->spare_send_buffers.next,
 			       struct usbatm_send_buffer, list);
 		list_del(&buf->list);
-		dbg("udsl_atm_send: unsupported ATM type %d!", vcc->qos.aal);
 		spin_unlock_irq(&instance->send_lock);
 			ctrl->crc = crc32_be(ctrl->crc, ptr, left);
 	}
 	struct usbatm_instance_data *instance = vcc->dev->dev_data;
 		buf->free_start = buf->base;
 		buf->free_cells = snd_buf_size;
-		dbg("udsl_atm_send: packet too long (%d vs %d)!", skb->len,
 				if (!urb->iso_frame_desc[i].status)
 					usbatm_extract_cells(instance,
 		instance->current_buffer = buf;
@@ -799,7 +724,6 @@ static int udsl_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		}
 	num_written = usbatm_write_cells(instance, buf->free_cells, skb, &buf->free_start);
 					unsigned int actual_length = urb->iso_frame_desc[i].actual_length;
-	udsl_groom_skb(vcc, skb);
 
 	vdbg("usbatm_process_send: wrote %u cells from skb 0x%p to buffer 0x%p",
 	     num_written, skb, buf);
@@ -807,7 +731,6 @@ static int udsl_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 						merge_start = (unsigned char *)urb->transfer_buffer + urb->iso_frame_desc[i].offset;
 	if (!(buf->free_cells -= num_written)) {
 		list_add_tail(&buf->list, &instance->filled_send_buffers);
-	udsl_pop(vcc, skb);
 		instance->current_buffer = NULL;
 	}
 					if (merge_length && (actual_length < packet_size)) {
@@ -816,11 +739,9 @@ static int udsl_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	     snd_buf_size - buf->free_cells, buf->free_cells);
 
 	if (!UDSL_SKB(skb)->num_cells) {
-static void udsl_destroy_instance(struct kref *kref)
 		struct atm_vcc *vcc = UDSL_SKB(skb)->atm_data.vcc;
 
-	struct udsl_instance_data *instance =
-	    container_of(kref, struct udsl_instance_data, refcount);
+		usbatm_pop(vcc, skb);
 		instance->current_skb = NULL;
 
 		atomic_inc(&vcc->stats->tx);
@@ -830,16 +751,13 @@ static void udsl_destroy_instance(struct kref *kref)
 						usbatm_extract_cells(instance, merge_start, merge_length);
 	goto made_progress;
 					merge_length = 0;
-void udsl_get_instance(struct udsl_instance_data *instance)
 					instance->buf_usage = 0;
 				}
 			}
 			     struct atm_vcc *vcc)
 
-void udsl_put_instance(struct udsl_instance_data *instance)
 			if (merge_length)
 				usbatm_extract_cells(instance, merge_start, merge_length);
-	kref_put(&instance->refcount, udsl_destroy_instance);
 	struct usbatm_instance_data *instance =
 	    container_of(kref, struct usbatm_instance_data, refcount);
 	dbg("usbatm_cancel_send entered");
@@ -847,26 +765,20 @@ void udsl_put_instance(struct udsl_instance_data *instance)
 				usbatm_extract_cells(instance, urb->transfer_buffer, urb->actual_length);
 			else
 				instance->buf_usage = 0;
-static void udsl_atm_dev_close(struct atm_dev *dev)
 
 		if (UDSL_SKB(skb)->atm_data.vcc == vcc) {
-	struct udsl_instance_data *instance = dev->dev_data;
 			dbg("usbatm_cancel_send: popping skb 0x%p", skb);
 void usbatm_get_instance(struct usbatm_instance_data *instance)
 			return;
-	udsl_put_instance(instance);
 	unsigned int num_written = 0;
 	}
 }
-static int udsl_atm_proc_read(struct atm_dev *atm_dev, loff_t * pos, char *page)
 
 void usbatm_put_instance(struct usbatm_instance_data *instance)
-	struct udsl_instance_data *instance = atm_dev->dev_data;
 
 	tasklet_disable(&instance->send_tasklet);
 	if ((skb = instance->current_skb) && (UDSL_SKB(skb)->atm_data.vcc == vcc)) {
 		dbg("usbatm_cancel_send: popping current skb (0x%p)", skb);
-		dbg("udsl_atm_proc_read: NULL instance!");
 ***********/
 
 static void usbatm_tx_process(unsigned long data)
@@ -919,22 +831,18 @@ static void usbatm_tx_process(unsigned long data)
 		if (bytes_written == buf_size || (!skb && bytes_written)) {
 			urb->transfer_buffer_length = bytes_written;
 
-static int udsl_atm_open(struct atm_vcc *vcc)
 			if (usbatm_submit_urb(urb))
 				break;
-	struct udsl_instance_data *instance = vcc->dev->dev_data;
-	struct udsl_vcc_data *new;
+			urb = NULL;
 		}
 	}
 
 	instance->current_skb = skb;
 }
 
-	dbg("udsl_atm_open: vpi %hd, vci %d", vpi, vci);
 static void usbatm_cancel_send(struct usbatm_data *instance,
 			       struct atm_vcc *vcc)
 {
-		dbg("udsl_atm_open: NULL data!");
 	struct usbatm_data *instance =
 	    container_of(kref, struct usbatm_data, refcount);
 	atm_dbg(instance, "%s entered
@@ -943,49 +851,41 @@ static void usbatm_cancel_send(struct usbatm_data *instance,
 	tasklet_kill(&instance->receive_tasklet);
 	tasklet_kill(&instance->send_tasklet);
 	if (!instance) {
-		dbg("udsl_atm_open: unsupported ATM type %d!", vcc->qos.aal);
 		dbg("%s: NULL data!", __func__);
 			usbatm_pop(vcc, skb);
 		}
 	spin_unlock_irq(&instance->sndqueue.lock);
 	struct usbatm_instance_data *instance = vcc->dev->dev_data;
 
-		dbg("udsl_atm_open: firmware not loaded (%d)!", err);
 	tasklet_disable(&instance->tx_channel.tasklet);
 		atm_dbg(instance, "%s: unsupported ATM type %d!
 ", __func__, vcc->qos.aal);
 		atm_dbg(instance, "%s: popping current skb (0x%p)
 ", __func__, skb);
 		instance->current_skb = NULL;
-	down(&instance->serialize);	/* vs self, udsl_atm_close */
 		usbatm_pop(vcc, skb);
 	}
-	if (udsl_find_vcc(instance, vpi, vci)) {
-		dbg("udsl_atm_open: %hd/%d already in use!", vpi, vci);
+	tasklet_enable(&instance->tx_channel.tasklet);
 		atm_dbg(instance, "%s: packet too long (%d vs %d)!
 ",
 				__func__, skb->len, ATM_MAX_AAL5_PDU);
 
 static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 {
-	if (!(new = kmalloc(sizeof(struct udsl_vcc_data), GFP_KERNEL))) {
-		dbg("udsl_atm_open: no memory for vcc_data!");
+	struct usbatm_data *instance = vcc->dev->dev_data;
 	struct usbatm_control *ctrl = UDSL_SKB(skb);
 	int err;
 
 	vdbg("%s called (skb 0x%p, len %u)", __func__, skb, skb->len);
 
-	memset(new, 0, sizeof(struct udsl_vcc_data));
 	/* racy disconnection check - fine */
 	if (!instance || instance->disconnected) {
 #endif
 		err = -ENODEV;
 	usbatm_put_instance(instance);
-	/* udsl_extract_cells requires at least one cell */
 		goto fail;
 	}
 
-		dbg("udsl_atm_open: no memory for SAR buffer!");
 	if (vcc->qos.aal != ATM_AAL5) {
 		atm_rldbg(instance, "%s: unsupported ATM type %d!
 ", __func__, vcc->qos.aal);
@@ -1008,36 +908,28 @@ static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	ctrl->atm.vcc = vcc;
 	ctrl->len = skb->len;
 	ctrl->crc = crc32_be(~0, skb->data, skb->len);
-	dbg("udsl_atm_open: allocated vcc data 0x%p (max_pdu: %u)", new, max_pdu);
 
 	skb_queue_tail(&instance->sndqueue, skb);
 	tasklet_schedule(&instance->tx_channel.tasklet);
 
 void usbatm_get_instance(struct usbatm_data *instance)
-static void udsl_atm_close(struct atm_vcc *vcc)
 	return 0;
 
-	struct udsl_instance_data *instance = vcc->dev->dev_data;
-	struct udsl_vcc_data *vcc_data = vcc->dev_data;
+ fail:
 	usbatm_pop(vcc, skb);
 	if (!left--) {
-	dbg("udsl_atm_close called");
 	return err;
 }
 
-		dbg("udsl_atm_close: NULL data!");
 			sprintf(page, "Line up");
 			break;
 void usbatm_put_instance(struct usbatm_data *instance)
 
-	dbg("udsl_atm_close: deallocating vcc 0x%p with vpi %d vci %d",
 			sprintf(page, "Line down");
 			break;
 /********************
-	udsl_cancel_send(instance, vcc);
 **  bean counting  **
 			sprintf(page, "Line state unknown");
-	down(&instance->serialize);	/* vs self, udsl_atm_open */
 			break;
 ********************/
 
@@ -1062,11 +954,9 @@ void usbatm_put_instance(struct usbatm_data *instance)
 
 static void usbatm_destroy_instance(struct kref *kref)
 static void usbatm_atm_dev_close(struct atm_dev *dev)
-	dbg("udsl_atm_close successful");
 {
 	struct usbatm_data *instance = container_of(kref, struct usbatm_data, refcount);
 	struct usbatm_data *instance = dev->dev_data;
-static int udsl_atm_ioctl(struct atm_dev *dev, unsigned int cmd,
 
 	dbg("%s", __func__);
 	struct usbatm_vcc_data *new;
@@ -1082,15 +972,13 @@ static int udsl_atm_ioctl(struct atm_dev *dev, unsigned int cmd,
 		dbg("usbatm_atm_open: NULL data!");
 }
 
-int udsl_instance_setup(struct usb_device *dev,
-			struct udsl_instance_data *instance)
+static void usbatm_get_instance(struct usbatm_data *instance)
 {
 
 	kref_get(&instance->refcount);
 }
 
 		dbg("usbatm_atm_open: unsupported ATM type %d!", vcc->qos.aal);
-	udsl_get_instance(instance);	/* one for ATM */
 static void usbatm_put_instance(struct usbatm_data *instance)
 {
 	dbg("%s", __func__);
@@ -1106,7 +994,6 @@ static void usbatm_put_instance(struct usbatm_data *instance)
 
 		dbg("usbatm_atm_open: %hd/%d already in use!", vpi, vci);
 		up(&instance->serialize);
-	tasklet_init(&instance->receive_tasklet, udsl_process_receive, (unsigned long)instance);
 		return -EADDRINUSE;
 **  ATM  **
 			struct usbatm_instance_data *instance)
@@ -1116,18 +1003,15 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 		dbg("usbatm_atm_open: no memory for vcc_data!");
 		up(&instance->serialize);
 		return -ENOMEM;
-	tasklet_init(&instance->send_tasklet, udsl_process_send,
 
 	dbg("%s", __func__);
 
 	if (!instance)
 		return;
 
-		struct udsl_receiver *rcv = &(instance->receivers[i]);
 	atm_dev->dev_data = NULL; /* catch bugs */
 	usbatm_put_instance(instance);	/* taken in usbatm_atm_init */
 	/* usbatm_extract_cells requires at least one cell */
-			dbg("udsl_usb_probe: no memory for receive urb %d!", i);
 	max_pdu = max(1, UDSL_NUM_CELLS(vcc->qos.rxtp.max_sdu)) * ATM_CELL_PAYLOAD;
 	if (!(new->sarb = alloc_skb(max_pdu, GFP_KERNEL))) {
 		dbg("usbatm_atm_open: no memory for SAR buffer!");
@@ -1140,7 +1024,6 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 		default:
 			return sprintf(page, "Line state unknown
 ");
-		struct udsl_receive_buffer *buf =
 		}
 	tasklet_disable(&instance->receive_tasklet);
 	if (!left--)
@@ -1148,7 +1031,6 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 ", instance->description);
 	tasklet_enable(&instance->receive_tasklet);
 
-			dbg("udsl_usb_probe: no memory for receive buffer %d!", i);
 	if (!left--)
 		return sprintf(page, "MAC: %02x:%02x:%02x:%02x:%02x:%02x
 ",
@@ -1159,12 +1041,10 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 
 	if (!left--)
 	tasklet_schedule(&instance->receive_tasklet);
-		struct udsl_sender *snd = &(instance->senders[i]);
 		return sprintf(page,
 			       "AAL5: tx %d ( %d err ), rx %d ( %d err, %d drop )
 ",
 	dbg("usbatm_atm_open: allocated vcc data 0x%p (max_pdu: %u)", new, max_pdu);
-			dbg("udsl_usb_probe: no memory for send urb %d!", i);
 			       atomic_read(&atm_dev->stats.aal5.tx),
 			       atomic_read(&atm_dev->stats.aal5.tx_err),
 	return 0;
@@ -1177,14 +1057,12 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 	    || (vcc->qos.rxtp.max_sdu > ATM_MAX_AAL5_PDU)) {
 		atm_dbg(instance, "%s: unsupported ATM type %d!
 ", __func__, vcc->qos.aal);
-		struct udsl_send_buffer *buf = &(instance->send_buffers[i]);
 	dbg("usbatm_atm_close called");
 
 				return sprintf(page, "Line state unknown
 ");
 			}
 		dbg("usbatm_atm_close: NULL data!");
-			dbg("udsl_usb_probe: no memory for send buffer %d!", i);
 	}
 		buf->base = kmalloc(snd_buf_size * (ATM_CELL_SIZE + instance->snd_padding),
 
@@ -1194,10 +1072,8 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 	    vcc_data, vcc_data->vpi, vcc_data->vci);
 
 	if (!instance) {
-					     &udsl_atm_devops, -1, NULL);
 		dbg("%s: NULL data!", __func__);
 		return -ENODEV;
-		dbg("udsl_usb_probe: failed to register ATM device!");
 	}
 		atm_dbg(instance, "%s: no memory for vcc_data!
 ", __func__);
@@ -1263,16 +1139,13 @@ fail:
 	mutex_unlock(&instance->serialize);
 	instance->usb_dev = dev;
 {
-void udsl_instance_disconnect(struct udsl_instance_data *instance)
 	INIT_LIST_HEAD(&instance->vcc_list);
 	struct usbatm_data *instance = vcc->dev->dev_data;
 	struct usbatm_vcc_data *vcc_data = vcc->dev_data;
 	instance->status = UDSL_NO_FIRMWARE;
-	dbg("udsl_instance_disconnect entered");
 	init_waitqueue_head(&instance->firmware_waiters);
 	if (!instance || !vcc_data) {
 		dbg("%s: NULL data!", __func__);
-		dbg("udsl_instance_disconnect: NULL instance!");
 	spin_lock_init(&instance->receive_lock);
 	INIT_LIST_HEAD(&instance->spare_receivers);
 	INIT_LIST_HEAD(&instance->filled_receive_buffers);
@@ -1320,10 +1193,9 @@ void usbatm_instance_disconnect(struct usbatm_instance_data *instance)
 	/* ATM init */
 		buf->base = kmalloc(rcv_buf_size * (ATM_CELL_SIZE + instance->rx_padding),
 				    GFP_KERNEL);
-EXPORT_SYMBOL_GPL(udsl_get_instance);
-EXPORT_SYMBOL_GPL(udsl_put_instance);
-EXPORT_SYMBOL_GPL(udsl_instance_setup);
-EXPORT_SYMBOL_GPL(udsl_instance_disconnect);
+		if (!buf->base) {
+			dbg("usbatm_usb_probe: no memory for receive buffer %d!", i);
+			goto fail;
 		}
 	clear_bit(ATM_VF_PARTIAL, &vcc->flags);
 		usb_dbg(instance, "%s: failed to register ATM device!
@@ -1401,13 +1273,10 @@ static int usbatm_atm_init(struct usbatm_data *instance)
 ", __func__, ret);
 	instance->atm_dev = NULL;
 	atm_dev_deregister(atm_dev); /* usbatm_atm_dev_close will eventually be called */
-static int __init udsl_usb_init(void)
 	return ret;
 	if (length <= 0 || (i = usb_make_path(dev, buf, length)) < 0)
-	dbg("udsl_usb_init: driver version " DRIVER_VERSION);
 		goto finish;
 
-	if (sizeof(struct udsl_control) > sizeof(((struct sk_buff *) 0)->cb)) {
 
 /**********
 **  USB  **
@@ -1423,18 +1292,14 @@ static int __init udsl_usb_init(void)
 	usb_get_dev(dev);
 		return -ENOMEM;
 	}
-module_init(udsl_usb_init);
 	return 0;
 	/* public fields */
-static void __exit udsl_usb_exit(void)
 
  fail:
-	dbg("udsl_usb_exit");
 	for (i = 0; i < num_snd_bufs; i++)
 		kfree(instance->send_buffers[i].base);
 	instance->rx_channel.endpoint = usb_rcvbulkpipe(usb_dev, driver->in);
 	instance->tx_channel.endpoint = usb_sndbulkpipe(usb_dev, driver->out);
-module_exit(udsl_usb_exit);
 	for (i = 0; i < num_snd_urbs; i++)
 		usb_free_urb(instance->senders[i].urb);
 	snprintf(instance->driver_name, sizeof(instance->driver_name), driver->driver_name);
@@ -1447,7 +1312,6 @@ module_exit(udsl_usb_exit);
 		usb_free_urb(instance->receivers[i].urb);
 		unsigned int num_packets;
 		unsigned int iso_packets = 0, iso_size = 0;
-static int udsl_print_packet(const unsigned char *data, int len)
 	return -ENOMEM;
 
 		if ((maxpacket < 1) || (maxpacket > UDSL_MAX_BUF_SIZE)) {
