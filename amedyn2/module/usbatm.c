@@ -232,7 +232,6 @@ static void usbatm_extract_cells(struct usbatm_instance_data *instance,
 	urb = usbatm_pop_urb(&instance->tx_channel);
 	if (!urb)
 		return -ENOMEM;
-	     i++, source += ATM_CELL_SIZE + instance->rcv_padding) {
 	
 	buffer = urb->transfer_buffer;
 	memcpy(buffer, source, ATM_CELL_SIZE);
@@ -470,7 +469,6 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 	target += ATM_CELL_HEADER;
 	memcpy(target, skb->data, skb->len);
 	target += skb->len;
-	buf->filled_cells = urb->actual_length / (ATM_CELL_SIZE + instance->rcv_padding);
 	__skb_pull(skb, skb->len);
 	memset(target, 0, ctrl->pdu_padding);
 	target += ctrl->pdu_padding;
@@ -514,7 +512,6 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 *************/
 	for (num_written = 0; num_written < avail_space && ctrl->len;
 static void usbatm_complete_receive(struct urb *urb, struct pt_regs *regs)
-				  rcv_buf_size * (ATM_CELL_SIZE + instance->rcv_padding),
 	     num_written += stride, target += stride) {
 static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 	struct usbatm_receive_buffer *buf;
@@ -1032,7 +1029,6 @@ static void usbatm_atm_dev_close(struct atm_dev *atm_dev)
 ",
 			       atm_dev->esi[0], atm_dev->esi[1],
 			       atm_dev->esi[2], atm_dev->esi[3],
-		buf->base = kmalloc(rcv_buf_size * (ATM_CELL_SIZE + instance->rcv_padding),
 			       atm_dev->esi[4], atm_dev->esi[5]);
 
 	if (!left--)
