@@ -1259,7 +1259,6 @@ fail:
 static void udsl_usb_disconnect (struct usb_interface *intf)
 {
 	struct udsl_instance_data *instance = usb_get_intfdata (intf);
-	int result, i;
 	struct list_head *pos;
 	unsigned int count;
 	int i;
@@ -1275,8 +1274,6 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 	/* receive finalize */
 	tasklet_disable (&instance->receive_tasklet);
-		if ((result = usb_unlink_urb (instance->receivers [i].urb)) < 0)
-			dbg ("udsl_usb_disconnect: usb_unlink_urb on receive urb %d returned %d!", i, result);
 
 	for (i = 0; i < num_rcv_urbs; i++)
 		usb_kill_urb (instance->receivers [i].urb);
@@ -1312,8 +1309,6 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 	/* send finalize */
 	tasklet_disable (&instance->send_tasklet);
-		if ((result = usb_unlink_urb (instance->senders [i].urb)) < 0)
-			dbg ("udsl_usb_disconnect: usb_unlink_urb on send urb %d returned %d!", i, result);
 
 	for (i = 0; i < num_snd_urbs; i++)
 		usb_kill_urb (instance->senders [i].urb);
