@@ -41,6 +41,11 @@ Before test this new package:
 		    /usr/lib/hotplug/firmware/
 		    You need: Init-usb.bin, fw-usb.bin Fw-usb_A.bin
 		    
+		*** If you use differents names for this files rename its. ***
+
+	- you need hotplug tools:
+	    hotplug****.deb, hotplug*****.rpm ...
+	    
 	    I have hotplug-2004_04_01-8.1.rpm in Fedora Core 3
 	    Or hotplug_0.0.20040329-16_all.deb in debian..
 	    
