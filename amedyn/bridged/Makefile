@@ -10,7 +10,6 @@ KERNEL_PATH = /lib/modules/$(DEST_KERNEL)/build
 CC = gcc
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign-compare
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX -Wsign-compare
-INCLUDES = -I$(KERNEL_PATH)/include 
 INCLUDES = -idirafter$(KERNEL_PATH)/include
 LDFLAGS = -latm -lresolv
 ifndef RPM_BUILD_ROOT
