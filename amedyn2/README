@@ -2,7 +2,6 @@ Before test this new package:
 
 	- IT IS ONLY FOR  KERNEL >= 2.6.12
 	    See: ftp://ftp.kernel.org/pub/linux/kernel/people/gregkh/driver_core/2.6/2.6.12-rc3/driver-02-2.6.12-rc3.patch
-	- IT IS ONLY FOR 2.6 KERNEL.
 	- IT IS ONLY FOR  KERNEL >= 2.6.10.
 	- IT IS ONLY FOR  KERNEL >= 2.6.9
 
@@ -13,6 +12,15 @@ Before test this new package:
 	- Dowload last version of the package.
 	    - cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/zyxel630-11 login
 	    - cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/zyxel630-11 co -P amedyn2
+
+	- You need firmware support in kernel, and hotplug.
+
+	    Device Drivers ---->
+		Generic Driver Options --->
+		    <*> Hotplug firmware loading support
+
+	    General setup ---->
+		[*] Support for hot-pluggable devices
 		[*] Kernel Userspace Events
 	- You need two firmware file, both in /lib/firmware/:
 
