@@ -58,7 +58,7 @@
 #define SEND_BULK_RETRIES 4   /* Max retries when you send a bulk packet */
 #define READ_BULK_RETRIES 4   /* Max retries when you wait a bulk packet */
 #define CTRL_MSG_RETRIES  4   /* Max retries when you transfer a control message */
-#define MAX_WAIT_LINE_UP 90   /* Seconds to wait until ADSL line is up */
+#define MAX_WAIT_LINE_UP -1   /* Seconds to wait until ADSL line is up */
 
 /* usb errors */
 #define EPIPE      32        /* When we receive a STALL */

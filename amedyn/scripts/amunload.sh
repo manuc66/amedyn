@@ -10,7 +10,7 @@ MODULE_NAMEDBG=amedyndbg
 IOCTL_NAME=amioctl
 
 remove_controller() {
-  usbcon=`lsmod | cut -d' ' -f1 | grep -E "^uhci|usb-uhci|usb-ohci|ehci-hcd$"`
+  usbcon=`lsmod | cut -d' ' -f1 | grep -E "^uhci|usb-ohci|ehci-hcd$"`
   if [ "$usbcon" != "" ]; then
     echo $">>> Removing USB controller..."
     rmmod $usbcon
@@ -22,7 +22,7 @@ remove_controller() {
   echo
   sleep 1s
   echo $">>> Loading again USB controller..."
-  modprobe uhci > /dev/null || modprobe usb-ohci > /dev/null || modprobe ehci-hcd > /dev/null
+  modprobe $usbcon > /dev/null
   sleep 5s
   echo
 }

@@ -44,11 +44,16 @@ RPM_RELEASE = 1
 
 all: clean compile_install
 
+all_control: clean compile_install AME_CONTROL
+
 #install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
 compile_install: AME_INIT AME_FIRMWARE AME_MODULE AME_SCRIPTS BRIDGED
 
 AME_INIT: init
 	cd init && make && make install
+
+AME_CONTROL:
+	cd amcontrol && make && make install
 
 AME_FIRMWARE:
 	cd firmware && make
@@ -65,28 +70,28 @@ BRIDGED: bridged
 package: clean
 	cd .. && tar -zcvf ${TGZ_SRC_NAME} amedyn
 
-#deb: clean compile_install
-#	mv -f /etc/cxacru /etc/cxacru.config
-#	cp -pf scripts/config/cxacru /etc/cxacru
-#	cd debian && ./create-pkg.sh ${DEST_MACHINE}
-#	mv -f /etc/cxacru.config /etc/cxacru
-#
-#rpm: clean compile_install
-#	mv -f /etc/cxacru /etc/cxacru.config
-#	cp -pf scripts/config/cxacru /etc/cxacru
-#	${RPMBIN} -bb \
-#	         --define "_rpmdir ${PWD}" \
-#	         --define "_builddir ${PWD}" \
-#	         --define "_arch ${DEST_MACHINE}" \
-#	         --define "__check_files ''" \
-#	         --define "_rpmfilename ${RPM_BIN_NAME}" \
-#	         --define "module_normal ${MODULE_NORMAL}" \
-#	         --define "module_debug ${MODULE_DEBUG}" \
-#	         --define "version ${RPM_VERSION}" \
-#	         --define "release ${RPM_RELEASE}" \
-#	         cxacru.spec
-#	mv ${RPM_BIN_NAME} ..
-#	mv -f /etc/cxacru.config /etc/cxacru
+deb: clean compile_install
+	mv -f /etc/amedyn /etc/amedyn.config
+	cp -pf scripts/config/amedyn /etc/amedyn
+	cd debian && ./create-pkg.sh ${DEST_MACHINE}
+	mv -f /etc/amedyn.config /etc/amedyn
+
+rpm: clean compile_install
+	mv -f /etc/amedyn /etc/amedyn.config
+	cp -pf scripts/config/amedyn /etc/amedyn
+	${RPMBIN} -bb \
+	         --define "_rpmdir ${PWD}" \
+	         --define "_builddir ${PWD}" \
+	         --define "_arch ${DEST_MACHINE}" \
+	         --define "__check_files ''" \
+	         --define "_rpmfilename ${RPM_BIN_NAME}" \
+	         --define "module_normal ${MODULE_NORMAL}" \
+	         --define "module_debug ${MODULE_DEBUG}" \
+	         --define "version ${RPM_VERSION}" \
+	         --define "release ${RPM_RELEASE}" \
+	         amedyn.spec
+	mv ${RPM_BIN_NAME} ..
+	mv -f /etc/amedyn.config /etc/amedyn
 
 #uninstall: firmware init module scripts panel bridged
 uninstall: firmware init module scripts bridged
@@ -97,10 +102,11 @@ uninstall: firmware init module scripts bridged
 	cd bridged && make uninstall
 
 #clean: init module sarlib panel bridged
-clean: init module bridged
+clean: init module bridged amcontrol
 	cd init && make clean
 	cd module && make clean
 	cd bridged && make clean
+	cd amcontrol && make clean
 
 add_service: scripts/Makefile
 	cd scripts && make add_service
@@ -108,14 +114,14 @@ add_service: scripts/Makefile
 remove_service: scripts/Makefile
 	cd scripts && make remove_service
 
-#help:
-#	echo "Type:"
-#	echo "  make -> To compile driver for your system"
-#	echo "  make -e DEST_MACHINE=i586 -> To compile driver for i586 machine"
-#	echo "  make rpm -> To build a rpm package for your system (it will be created in previous directory)"
-#	echo "  make -e DEST_MACHINE=i586 rpm -> To build a rpm package for i586 machine"
-#	echo "  make deb -> To build a deb package for your system (it will be created in previous directory)"
-#	echo "  make package -> To build a tgz package (it will be created in previous directory)"
-#	echo "  make uninstall -> To remove installed files"
-#	echo "  make add_service -> To install driver as a service (you don't need type cxstart.sh)"
-#	echo "  make remove_service -> To remove driver service"
+help:
+	echo "Type:"
+	echo "  make -> To compile driver for your system"
+	echo "  make -e DEST_MACHINE=i586 -> To compile driver for i586 machine"
+	echo "  make rpm -> To build a rpm package for your system (it will be created in previous directory)"
+	echo "  make -e DEST_MACHINE=i586 rpm -> To build a rpm package for i586 machine"
+	echo "  make deb -> To build a deb package for your system (it will be created in previous directory)"
+	echo "  make package -> To build a tgz package (it will be created in previous directory)"
+	echo "  make uninstall -> To remove installed files"
+	echo "  make add_service -> To install driver as a service (you don't need type amstart.sh)"
+	echo "  make remove_service -> To remove driver service"

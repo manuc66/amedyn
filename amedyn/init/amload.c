@@ -42,6 +42,18 @@
   27/10/2003 Josep Comas
   Credits update
   Ajust sign int types values
+
+  22/06/2004 Counasse Emmanuel (manuc66[a]yahoo.fr)
+  Don't clear_endpoints' before firmware send
+  micro sleep added in post load
+
+  11/07/2004  Sktt (Aurelio)
+  Fix synchronization problem
+
+  02/08/2207 Sktt (Aurelio)
+  Remove my stats and debug code
+  Add send_cmds_sync function
+
 */
 
 
@@ -395,6 +407,46 @@ int jump_to_address(usb_dev_handle *adsl_handle, unsigned int place)
   return 0;
 }
 
+/* Say modem sync line */
+int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
+  {
+  unsigned char buf[0x1ff];   /* buffer */
+  long len;     /* length */
+
+  /* set AFE value, R_Function_Code = 0x15 (adjust Alcatel DSP for our configuration) */
+  /* 0x1fd in CTRLE protocol */
+  /* 0x15 = analog line, 0x11 ISDN line */
+  buf[0] = 0x15;
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x1fd, buf, 1);
+  if (len < 0)
+    return -1;
+
+  buf[0] = 0x01;
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4a, buf, 1);
+  if (len < 0)
+    return -1;
+
+  buf[0] = 0x00;
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4b, buf, 1);
+  if (len < 0)
+    return -1;
+
+  buf[0] = 0x00;
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4c, buf, 1);
+  if (len < 0)
+    return -1;
+
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x02, 0x03, 0x00, NULL, 0);
+  if (len < 0)
+    return -1;
+
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, 0x0e, 0x03, 0x00, buf, 0x0c);
+  if (len < 0x0c)
+    return -1;
+
+  return 0;
+  }
+
 /* load firmware */
 int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 {
@@ -407,6 +459,7 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   time_t first, last, before;  /* to wait */
   unsigned char bufconf[8];  /* buffer to save config bytes */
   unsigned char *pbuf;  /* pointer to buffer */
+
 
   /* clear endpoints */
   clear_endpoints(adsl_handle, 1);
@@ -480,9 +533,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
     return -1;
   memcpy(bufconf, buf+0xb9, 8);
 
-  /* clear endpoints */
-  clear_endpoints(adsl_handle, 1);
-
 
   /*****************/
   /* send firmware */
@@ -523,7 +573,7 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   if (len < 1)
     return -1;
   value = buf[0];
-
+  
   usb_resetep(adsl_handle, 0x81);
 
   // send (0x40)
@@ -534,10 +584,17 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   // read (0xC0)
   for (i = 0xc2; i <= 0xcd; i++) {
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, value, 0x03, i, buf, 3);
+    usleep(10000);
     if (len < 3)
       return -1;
   }
 
+
+  /* waiting until line is up (a maximum time) */
+  printf (gettext ("Waiting ADSL line is up (until %d seconds)...\n"),
+	  MAX_WAIT_LINE_UP);
+  time (&first);
+  before = first;
   len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x0b, 0x0c, 0x00, NULL, 0);
   if (len < 0)
     return -1;
@@ -547,37 +604,17 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
     if (len < 0)
       return -1;
   }
+ 
+do
+  {
 
-  /* set AFE value, R_Function_Code = 0x15 (adjust Alcatel DSP for our configuration) */
-  /* 0x1fd in CTRLE protocol */
-  /* 0x15 = analog line, 0x11 ISDN line */
-  buf[0] = 0x15;
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x1fd, buf, 1);
+  len = send_cmds_sync (adsl_handle, tmodem); /* Sync line */
+
   if (len < 0)
-    return -1;
-
-  buf[0] = 0x01;
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4a, buf, 1);
-  if (len < 0)
-    return -1;
-
-  buf[0] = 0x00;
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4b, buf, 1);
-  if (len < 0)
-    return -1;
-
-  buf[0] = 0x00;
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x4c, buf, 1);
-  if (len < 0)
-    return -1;
-
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x02, 0x03, 0x00, NULL, 0);
-  if (len < 0)
-    return -1;
-
-  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, 0x0e, 0x03, 0x00, buf, 0x0c);
-  if (len < 0x0c)
-    return -1;
+	{
+	printf(gettext("Error at sync line!\n"));
+	return -1;
+	}
 
 #ifdef SIMULATE
   exit(0);
@@ -585,9 +622,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 
   memset(&modem_info, 0, sizeof(struct usb_modem_info));
 
-  /* waiting until line is up (a maximum time) */
-  printf(gettext("Waiting ADSL line is up (until %d seconds)...\n"), MAX_WAIT_LINE_UP);
-  time(&first); before = first;
   do {
     PDEBUG(gettext("Sending retrieve info...\n"));
     memset(buf, 0, 0x10);
@@ -600,24 +634,51 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
       if (len > 0)
         dump(buf, len, 16);
 #endif
-      if (len == 12)
-        if ((buf[0] & 0xff) == 0x01) {
-          modem_info.modem_status = buf[1] & 0xff;
-          PDEBUG(gettext("Modem status = %02x\n"), modem_info.modem_status);
-        }
-    }
-    if (difftime(time(&last), before) > 1) {
+
+		  if ((buf[0] & 0xff) == 0x01)
+		    {
+		      modem_info.modem_status = buf[1] & 0xff;
+/*		      if (modem_info.modem_status == MODEM_UP)
+			printf ("@");
+		      if (modem_info.modem_status == MODEM_DOWN)
+			printf ("#");
+		      if (modem_info.modem_status == MODEM_WAIT)
+			printf ("_");
+		      if (modem_info.modem_status == MODEM_INIT)
+			printf ("-");
+ */
+		      PDEBUG (gettext ("Modem status = %02x\n"),
+			      modem_info.modem_status);
+		    }
+	      fflush (stdout);
+ 
+
+
+  if (difftime (time (&last), before) > 1)
+	    {
 #ifndef DEBUG
+
       printf(".");
       fflush(stdout);
 #endif
-      before = last;
+	      before = last;
+	    }
+	  }
+	}
+      while ((len != 2 && (buf[0] & 0xff) != 0x40)
+	     && (len != 1 && (buf[0] & 0xff) != 0x50) 
+	     && ((difftime (last, first) < MAX_WAIT_LINE_UP)
+		 || MAX_WAIT_LINE_UP == -1));
     }
-  }
-  while ((modem_info.modem_status != MODEM_UP) && (difftime(last, first) < MAX_WAIT_LINE_UP));
-  printf("\n");
+  while ((len != 1 && (buf[0] & 0xff) != 0x50)
+	 && ((difftime (last, first) < MAX_WAIT_LINE_UP)
+	     || MAX_WAIT_LINE_UP == -1));
 
-  if (modem_info.modem_status == MODEM_UP)
+  printf ("\n");
+
+
+  if ( (modem_info.modem_status == MODEM_UP ) 
+    ||(len == 1 && (buf[0] & 0xff) == 0x50) )
   {
     printf(gettext("ADSL line is up\n"));
 /* these lines blink leds:
@@ -639,7 +700,10 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 */
   }
   else
+  {
     printf(gettext("ADSL line is down\n"));
+    return -1;
+  }
 
 /*
 #ifdef DEBUG
@@ -744,7 +808,7 @@ int main(int argc, char *argv[])
 
   /* show program information */
   printf(gettext("Zyxel 630-11 & Asus AAM6000UG microcode upload program."));
-  printf(" 12/10/2003\n");
+  printf(" 02/08/2004\n");
   printf("Josep Comas <jcomas@gna.es>\n");
   printf("Sundar <sundar@cynaptix.biz>\n");
   printf("Eduardo Espejo <eespejo@users.sourceforge.net>\n\n");

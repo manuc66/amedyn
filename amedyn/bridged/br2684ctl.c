@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <syslog.h>
+#include <linux/compiler.h>
 #include <atm.h>
 #include <linux/atmdev.h>
 #include <linux/atmbr2684.h>

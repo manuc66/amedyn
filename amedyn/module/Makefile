@@ -14,14 +14,16 @@ CONFIG_NAME = .config
 #CONFIG_NAME = kernel-2.6.0-test4-i686.config 
 
 xdslusb-module := amedyn
-xdslusb-module-objs := xdslusb.o
 xdslusb-crc := speedcrc
-xdslusb-files := xdslusb.c $(xdslusb-crc).c $(xdslusb-crc).h Makefile
 
 ifeq ($(DEST_KERNEL_MAIN), 2.4)
 module-extension = .o
+xdslusb-module-objs := xdslusb_2.4.o
+xdslusb-files := xdslusb_2.4.c $(xdslusb-crc).c $(xdslusb-crc).h Makefile
 else
 module-extension = .ko
+xdslusb-files := xdslusb_2.6.c $(xdslusb-crc).c $(xdslusb-crc).h Makefile
+xdslusb-module-objs := xdslusb_2.6.o
 endif
 
 xdslusb-module-name := $(xdslusb-module)$(module-extension)

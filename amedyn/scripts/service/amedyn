@@ -29,46 +29,47 @@ link=${base#*[SK][0-9][0-9]}
 
 # Redhat
 if [ -f /etc/init.d/functions ]; then
-        . /etc/init.d/functions
+    . /etc/init.d/functions
 elif [ -f /etc/rc.d/init.d/functions ]; then
-        . /etc/rc.d/init.d/functions
+    . /etc/rc.d/init.d/functions
 fi
 
 RETVAL=0
 
 start() {
-        /usr/sbin/amstart.sh service
-	RETVAL=$?
-	return $RETVAL
+#   /usr/sbin/amstart.sh service
+    /usr/sbin/amstart.sh service > /var/log/amedyn &
+    RETVAL=$?
+    return $RETVAL
 }
 
 stop() {
-        /usr/sbin/amstop.sh service
-	RETVAL=$?
-	return $RETVAL
+    /usr/sbin/amstop.sh service
+    RETVAL=$?
+    return $RETVAL
 }
 
 case "$1" in
-  start)
+    start)
 	start
 	;;
-  stop)
+    stop)
 	stop
 	;;
-  status)
+    status)
 	if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then
-                echo $"Driver loaded"
-		RETVAL=0
+	    echo $"Driver loaded"
+	    RETVAL=0
         else
-                echo $"Driver not loaded"
-		RETVAL=1
+	    echo $"Driver not loaded"
+	    RETVAL=1
         fi
         ;;
-  restart|reload)
+    restart|reload)
 	stop && start
 	RETVAL=$?
 	;;
-  *)
+    *)
 	echo $"Usage: $0 {start|stop|status|restart|reload}"
 	exit 1
 esac

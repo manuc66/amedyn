@@ -6,7 +6,7 @@
 DRIVER_MODE=1  # 1 = normal, 2 = debug
 
 # Protocol
-PROTOCOL_MODE=1  # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), 3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe)
+PROTOCOL_MODE=2  # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), 3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe)
 
 # Paths
 BINARY_PATH="/usr/sbin"

@@ -1,0 +1,3 @@
+This soft is currently on develloppement and need to be tested. I you want to use it do it at your own risk. To compile it you need ncurses (and its lib). If you want to install it with other files type in amdyn dir. : make all_control
+
+Thanks 

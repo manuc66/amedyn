@@ -25,7 +25,7 @@ if [ "$KERNEL_VERSION" = "2.4" ]; then
     echo
   fi
 else
-  usbcon=`lsmod | cut -d ' ' -f1 | grep -E "^uhci_hcd|ohci_hcd|ehci_hcd$"`
+  usbcon=`lsmod | cut -d ' ' -f1 | grep -E "uhci_hcd|ohci_hcd|ehci_hcd$"`
   if [ "$usbcon" = "" ]; then
     echo $">>> Loading USB controller..."
     modprobe uhci-hcd
