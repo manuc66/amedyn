@@ -1,0 +1,337 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr">
+<head>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>French Install Instruction</title>
+  <style type="text/css">
+<!--
+
+body { background-color: #E5E5E5;}
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover { color: #DD6900;
+text-decoration: underline; }
+
+
+.quote { font-family: Verdana, Arial, Helvetica, sans-serif; font-size:
+11px; color: #444444; line-height: 125%; background-color: #FAFAFA;
+border: #D1D7DC; border-style: solid; border-left-width: 1px;
+border-top-width: 1px; border-right-width: 1px; border-bottom-width:
+1px
+}
+
+-->
+  </style>
+</head>
+<body style="color: rgb(0, 0, 0); background-color: rgb(229, 229, 229);"
+ link="#006699" vlink="#5493b4">
+&nbsp;
+1) Installer les paquetages suivants : <br>
+<span class="genmed"></span><span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+kernel-source <br>
+ppp <br>
+libpcap0 (also called libpcap ;) ) <br>
+ppp-pppoatm (IF you are using pppoatm) <br>
+rp-pppoe (IF you are using pppoe)<br>
+libusb <br>
+libusb-dev <br>
+linux-atm <br>
+popt <br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<span class="postbody"><br>
+</span><br>
+2) Copier amedyn-200x-xx-xx-src.tgz vers /usr.
+Et taper les commandes suivantes dans un terminal : <br>
+<span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+su <br>
+      <br>
+cd /usr/ <br>
+      <br>
+tar xzvf amedyn-200x-xx-xx-src.tgz <br>
+      <br>
+cd /usr/amedyn <br>
+      <br>
+make<br>
+&nbsp; <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+d&eacute;compaction, change de r&eacute;pertoire vers le
+r&eacute;pertoire de d&eacute;compaction, complile en tapant make<br>
+<span class="postbody"><br>
+</span>3) Configuration du protocol: <br>
+<br>
+&nbsp;
+pour pppoe : <a
+ href="http://www.csn.ul.ie/%7Ecaolan/TechTexts/ZyXEL-630-11-HowTo.html"
+ target="_blank">http://www.csn.ul.ie/~caolan/TechTexts/ZyXEL-630-11-HowTo.html</a>
+(point 4, 6, 7) <br>
+<br>
+&nbsp;
+pour pppoa seulement : <br>
+<br>
+&nbsp;
+editer le fichier /etc/amedyn comme ci-desous...<br>
+<span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"># Protocol <br>
+PROTOCOL_MODE=2 # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), <br>
+#3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe) <br>
+      <br>
+# ATM <br>
+VPI=8 <br>
+VCI=35 <br>
+      <br>
+# Specific for RFC1483/2684 routed/bridged <br>
+# if IP_ADDRESS is blank in bridged mode then it uses DHCP to get IP <br>
+IP_ADDRESS= <br>
+NETMASK=255.255.255.0 <br>
+GATEWAY= <br>
+      <br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+et remplacer les valeur VPI et VCI avec celle de votre fournisseur
+d'access internet (par example VPI=8 et VCI= 35) .<br>
+<br>
+4) Editer le fichier /etc/ppp/pap-secrets <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span><span class="genmed"></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+# Secrets for authentication using PAP <br>
+# client server secret IP addresses <br>
+username&lt;tab&gt;*&lt;tab&gt;PaSsWoRd&lt;tab&gt;*<br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+&nbsp;
+Remplacer les "&lt;tab&gt;" par la touche tabulation.<br>
+&nbsp;
+Remplacer les valeur "username" et "password" respectivement par votre
+identifiant de connection internet et le mot de passe&nbsp;
+associ&eacute;.
+<br>
+<br>
+<br>
+5) Editer le fichier /etc/ppp/options et placer le contenu suivant : <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">lock <br>
+defaultroute <br>
+noipdefault <br>
+usepeerdns <br>
+noauth <br>
+sync <br>
+noaccomp <br>
+nopcomp <br>
+noccp <br>
+novj <br>
+holdoff 4 <br>
+persist <br>
+maxfail 25 <br>
+passive <br>
+asyncmap 0 <br>
+lcp-echo-interval 2 <br>
+lcp-echo-failure 7 <br>
+#replace user@domain by your coorect info <br>
+name username<br>
+user username<br>
+plugin usr/lib/pppd/VERSION/pppoatm.so <br>
+plugin /usr/lib/pppd/VERSION/pppoatm.so <br>
+VPI.VCI <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+&nbsp; Remplacer les valeurs "username" comme dans le point
+pr&eacute;c&eacute;dent, le VCI.VPI (par example 8.35) ainssi que
+"VERSION" dans la ligne "plugin usr/lib/pppd/VERSION/pppoatm.so" par la
+version de votre d&eacute;mon pppd (par example 2.4.1 ou 2.4.2)
+<br>
+<br>
+6) Maintenant pour &eacute;tablir la connection taper amstart.sh et le
+pilote&nbsp; effectuera le soperation suivantes : envoie du mircocode
+au modem accompagn&eacute; de la proc&eacute;dure de synchronisation,
+initialisation, et ensuite configuration.taper ifocnfig affin de
+v&eacute;rifier qu'une interface ppp0 est pr&eacute;sente. <br>
+<br>
+&nbsp;
+Si la connection est &eacute;tablie, vous devriez &ecirc;tre en mesure
+d'effectuer un 'ping' sur une adresse IP, pour se faire essayez la
+commande suivante : <br>
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">ping 216.239.59.147</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+&nbsp;
+Si cela fonctionne, la connection &agrave; internet est &eacute;tablie.
+Maintenant tester la r&eacute;solution de nom de domaine en effectuant
+un 'ping' sur une adresse web (si cela ne fonctionne pas passez
+&agrave; l'&eacute;tape 7)<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">ping <a href="http://www.google.com"
+ target="_blank">www.google.com</a></td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+&nbsp;Si l'hote n'est aps joignable, editer le fichier /etc/resolv.conf
+et /etc/ppp/resolv.conf&nbsp; en ajoutant les lignes suivantes<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">nameserver first_dns <br>
+nameserver second_dns</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+&nbsp; Placer les adresses IP de votre fournisseur d'access internet en
+rempla&ccedil;ant "first_dns" et "second_dns", si vous ne les
+connaissez pas adressez vous &agrave; votre fournisseur ou realiser une
+recherche sur le la toile.<br>
+<br>
+&nbsp; Pour stopper la connection, taper amstop.sh, pour vous connecter
+&agrave; nouveau (si cela ne fonctionne pas, d&eacute;brancher votre
+modem attendez une dizaines de secondes et lancer amstart.sh) <br>
+<br>
+&nbsp; (Si vous le d&eacute;sirez vous pouvez
+r&eacute;alis&eacute; un lien de votre fichier /etc/resolv.conf vers
+/etc/, pour ce faire t&eacute;per la comande suivant avec les
+permission root : ln -sf /etc/resolv.conf /etc/ppp/resolv.conf)<br>
+<br>
+7) Si l'&eacute;tape 6 n'a pas fonctionn&eacute; mais que tout semble
+correct, je vous sug&eacute;re d'essayer d'&eacute;diter le fichier
+source xdslusb (il y a 2 fichiers, un pourt le noyau 2.4 et un pour le
+2.6, il sont nom&eacute; en cons&eacute;quence) dans le
+r&eacute;pertoire /usr/amedyn/module/ en changeant les valeur des
+lignes suivantes :<br>
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">#define UDSL_DEFAULT_RCV_BUF_SIZE 64<br>
+#define UDSL_DEFAULT_SND_BUF_SIZE 32</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+8) Affin que votre ordinateur lance automatiquement la conenction
+&agrave; chaque d&eacute;marage, taper dans le repertoire /usr/amedyn
+avec les privil&eacute;ges root la commande suivante : <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Code:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">make add_service </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+9) besoin d'aide ? veuillez vous rendre sur le forum du pilote (<a
+ href="http://sourceforge.net/forum/?group_id=84006">forum du projet
+zyxel</a> ou <a
+ href="http://sourceforge.net/forum/forum.php?forum_id=294814">forum du
+projet asus</a> cela n'a pas d'importance) et regarder &eacute;galement
+dans les fichier /var/log/message et /var/log/syslog pour essayer de
+d&eacute;tecter une erreur. SVP ne pas copier le contenu de ces fichier
+sur le forum !<br>
+<br>
+<br>
+<br>
+Credits pour cette documentation : <br>
+L'ensemble des document pr&eacute;c&eacute;dent, <a
+ href="mailto:manuc66%20%5Bat%5D%20yahoo%20.%20fr">manuc66</a> et <a
+ href="mailto:max87%20%5Bat%5D%20gmx%20.%20net">max4ever</a>
+</body>
+</html>
