@@ -1,0 +1,72 @@
+Before test this new package:
+
+	- IT IS ONLY FOR  KERNEL >= 2.6.12
+	    See: ftp://ftp.kernel.org/pub/linux/kernel/people/gregkh/driver_core/2.6/2.6.12-rc3/driver-02-2.6.12-rc3.patch
+	- IT IS ONLY FOR 2.6 KERNEL.
+	- IT IS ONLY FOR  KERNEL >= 2.6.10.
+	- IT IS ONLY FOR  KERNEL >= 2.6.9
+
+	- SURE YOU HAVE ACTUAL DRIVER PACKAGE PREPARE TO FULL REINSTALL IT IF
+	SOMETHING GO WRONG.
+	- DON'T DO ANYTHING IMPORTANT AT COMPUTER WHILE YOU TEST IT.
+
+	- Dowload last version of the package.
+	    - cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/zyxel630-11 login
+	    - cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/zyxel630-11 co -P amedyn2
+		[*] Kernel Userspace Events
+	- You need two firmware file, both in /lib/firmware/:
+
+	- You need two firmware file, both in:
+		- First stage firmware: Init-usb.bin
+			You need take it form your Windows drivers. If you don't
+			have this file in your Windows system look for the
+			correct name at Hardware control panel of the modem.
+			¿init-usb.bin?
+			Remember save it as Init-usb.bin
+
+		- Second stage firmware: fw-usb.bin or  Fw-usb_A.bin
+			in your amdeyn package. Copy it to /lib/firmware/
+		- Copy all this firmware files to /lib/firmware/
+
+		    /usr/lib/hotplug/firmware/
+		    You need: Init-usb.bin, fw-usb.bin Fw-usb_A.bin
+		    
+	    I have hotplug-2004_04_01-8.1.rpm in Fedora Core 3
+	    Or hotplug_0.0.20040329-16_all.deb in debian..
+	    
+	- Uninstal old driver:
+		- make remove_service
+		- make uninstall
+
+	- Reboot computer. Yes, please reboot it.
+
+	- Install new package:
+		- make
+		- make install
+
+	- Config /etc/amdyn
+		- A new parameter is need, add and set it :
+				# Line type
+				LINE_TYPE=0x15 # 0x15 = ANALOG, 0x11 = ISDN
+
+	- Try it...
+		amstar.sh
+
+	- If it work
+		- Say it at forum.
+			- Modem
+			- kernel version
+			- distro (mandrake, fedora core, ...) and version.
+			- line type
+			- PPPoE/PPPoA/... , 
+
+	- If failed...
+		- make uninstall
+		- install old version
+		- ....go to forum and post...
+			- Modem, kernel......
+			- amstart.sh output
+			- "dmesg" output
+
+Good lucky...
+
