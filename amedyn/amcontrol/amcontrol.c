@@ -649,13 +649,11 @@ main (int argc, char *argv[])
   wborder (creditw, 0, 0, 0, 0, 0, 0, 0, 0);
 
   rawinfow = newwin (0x0d, 40, 12, 27);
-  box (infow, 0, 0);
   scrollok (rawinfow, TRUE);
   box (rawinfow, 0, 0);
   wborder (rawinfow, 0, 0, 0, 0, 0, 0, 0, 0);
 
   humaninfow = newwin (0x0d, 53, 12, 27);
-  box (infow, 0, 0);
   scrollok (humaninfow, TRUE);
   box (humaninfow, 0, 0);
   wborder (humaninfow, 0, 0, 0, 0, 0, 0, 0, 0);
