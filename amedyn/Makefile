@@ -43,33 +43,41 @@ RPM_VERSION = $(shell date +%Y_%m_%d)_$(shell echo $(DEST_KERNEL) | tr "-" "_")
 RPM_RELEASE = 1
 
 all: clean compile
-all: clean compile_install
 
 #install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
-all_control: clean compile_install AME_CONTROL
+compile: userspace modules
 compile: AME_INIT AME_MODULE BRIDGED AME_CONTROL
 compile: AME_INIT AME_MODULE AME_CONTROL BRIDGED
-#install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
-compile_install: AME_INIT AME_MODULE AME_SCRIPTS BRIDGED
 compile: AME_INIT AME_CONTROL
 install: AME_INIT_install AME_MODULE_install AME_SCRIPTS_install BRIDGED_install AME_CONTROL_install
 
-	cd init && make && make install
 install: AME_INIT_install AME_MODULE_install AME_SCRIPTS_install  AME_CONTROL_install BRIDGED_install
 userspace: AME_INIT AME_CONTROL
 install: AME_INIT_install AME_SCRIPTS_install  AME_CONTROL_install
-	cd amcontrol && make && make install
 	make -C module install 
 
 AME_INIT: init
-	cd module && make && make install
 	cd init && make
 
 	cd module && make
 AME_CONTROL:
 	cd amcontrol && make
 
-	cd bridged && make && make install
+AME_MODULE: module
+	cd module && make normal
+
+AME_SCRIPTS: scripts
+	cd scripts && make
+
+BRIDGED: bridged
+	cd bridged && make
+AME_INIT_install: init
+	cd init && make install
+
+AME_CONTROL_install:
+	cd amcontrol && make install
+
+AME_MODULE_install: module
 	cd module && make install
 
 AME_SCRIPTS_install: scripts
