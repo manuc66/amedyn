@@ -358,6 +358,17 @@ int translate_buf (unsigned char buf[0x1ff],int len)
     modem_info.potenciat = (float) buf[7] / 2;
 	  }
 	else
+	  wprintw (infow,"[Unknow status %02x]
+\r",buf[1]);
+	break;	
+    default:
+        if ( (buf[0] < 0xf1) || (buf[0] > 0xfc) ) 
+	    wprintw (infow,"[Other info len: %2d (%02x)]
+\r",len,buf[0]);
+	break;
+    }
+    break;
+    return 0;
 	for ( i = 0x00 ; i < len; i = i + 1 )
 	    { wprintw (infow, "%02x ", buf[i]); }
       wprintw (infow, "]
