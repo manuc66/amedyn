@@ -5,7 +5,7 @@
 # variables
 DEST_MACHINE = $(shell uname -m)
 CC = gcc
-CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX
+CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX -Wsign-compare
 INCLUDES = -I../include
 LDFLAGS = -lusb 
 BIN_PATH = /usr/sbin

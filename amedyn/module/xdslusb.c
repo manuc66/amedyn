@@ -22,10 +22,12 @@
  ******************************************************************************/
 
 /*  Alcatel SpeedTouch USB xDSL modem driver was written by Johan Verrept at Alcatel company
- *  and it is maintained by Duncan Sands (duncan.sands@wanadoo.fr)
+ *  and it is maintained by Duncan Sands (duncan.sands@free.fr)
  *
- *  2.0pre1:    - Added padding ATM cells support by SolNegro (solnegro@mailforce.net)
+ *  2.0pre2:    - Added padding ATM cells support by SolNegro (solnegro@mailforce.net)
  *              - Added generic support by Josep Comas (jcomas@gna.es)
+ *
+ *  1.7+:	- See the check-in logs
  *
  *  1.6:	- No longer opens a connection if the firmware is not loaded
  *  		- Added support for the speedtouch 330
@@ -81,15 +83,15 @@
 #include <linux/interrupt.h>
 #include <linux/atm.h>
 #include <linux/atmdev.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 4, 22)
 #include "speedcrc.h"
 #else
 #include <linux/crc32.h>
 #endif
 #include <linux/init.h>
 
-/*
 #define DEBUG
+/*
 #define VERBOSE_DEBUG
 */
 
@@ -112,6 +114,12 @@
 #define BUG_ON(x)	if (x) BUG ()
 #endif
 
+#ifdef DEBUG
+#define DEBUG_ON(x)	BUG_ON(x)
+#else
+#define DEBUG_ON(x)	do { if (x); } while (0)
+#endif
+
 #ifdef VERBOSE_DEBUG
 static int udsl_print_packet (const unsigned char *data, int len);
 #define PACKETDEBUG(arg...)	udsl_print_packet (arg)
@@ -121,18 +129,20 @@ static int udsl_print_packet (const unsigned char *data, int len);
 #define vdbg(arg...)
 #endif
 
-#define DRIVER_AUTHOR	"Johan Verrept, Duncan Sands <duncan.sands@wanadoo.fr>, SolNegro (solnegro@mailforce.net), Josep Comas (jcomas@gna.es)"
+#define DRIVER_AUTHOR	"Johan Verrept, Duncan Sands <duncan.sands@free.fr>, SolNegro (solnegro@mailforce.net), Josep Comas (jcomas@gna.es)"
 #define DRIVER_DESC	"Generic xDSL USB driver"
-#define DRIVER_VERSION	"2.0pre1"
+#define DRIVER_VERSION	"2.0pre2"
 
 static const char udsl_driver_name [] = "xdslusb";
 
-/* Alcatel old reference design */
-#define SPEEDTOUCH_VENDORID		0x06b9  /* Vendor = Alcatel */
-#define SPEEDTOUCH_PRODUCTID		0x4061  /* Product = Speedtouch USB */
-/* Alcatel new reference design (used by Zyxel 630-11, Zyxel 630-13, Asus AAM6000UG) */
-#define AME_VENDORID		        0x06b9  /* Vendor = Alcatel Microelectronics */
-#define AME_PRODUCTID		        0xa5a5  /* Product = DynaMiTe USB Modem */
+/* Alcatel Microelectronics old reference design */
+#define AME_VENDORID1 		        0x06b9  /* Vendor = Alcatel */
+#define AME_PRODUCTID1		        0x4061  /* Product = Speedtouch USB */
+/* Alcatel Microelectronics new reference design */
+#define AME_VENDORID2		        0x06b9  /* Vendor = Zyxel */
+#define AME_PRODUCTID2		        0xa5a5  /* Product = 630-11 & 630-13 */
+#define AME_VENDORID3		        0x0b05  /* Vendor = Asustek */
+#define AME_PRODUCTID3		        0x6206  /* Product = AAM6000UG with Alcatel chipset */
 
 /* Conexant AccessRunner USB reference design */
 #define CXACRU_VENDORID1                0x0572  /* Vendor = Conexant */
@@ -174,8 +184,8 @@ static const char udsl_driver_name [] = "xdslusb";
 #define UDSL_DEFAULT_SND_URBS		1
 #define UDSL_DEFAULT_RCV_BUFS		2
 #define UDSL_DEFAULT_SND_BUFS		2
-#define UDSL_DEFAULT_RCV_BUF_SIZE	64 /* ATM cells */
-#define UDSL_DEFAULT_SND_BUF_SIZE	64 /* ATM cells */
+#define UDSL_DEFAULT_RCV_BUF_SIZE	32 /* ATM cells */
+#define UDSL_DEFAULT_SND_BUF_SIZE	32 /* ATM cells */
 
 static unsigned int num_rcv_urbs = UDSL_DEFAULT_RCV_URBS;
 static unsigned int num_snd_urbs = UDSL_DEFAULT_SND_URBS;
@@ -183,13 +193,6 @@ static unsigned int num_rcv_bufs = UDSL_DEFAULT_RCV_BUFS;
 static unsigned int num_snd_bufs = UDSL_DEFAULT_SND_BUFS;
 static unsigned int rcv_buf_size = UDSL_DEFAULT_RCV_BUF_SIZE;
 static unsigned int snd_buf_size = UDSL_DEFAULT_SND_BUF_SIZE;
-static unsigned int udsl_modem_type;
-/* USB data endpoints */
-static unsigned int udsl_ep_data_out;
-static unsigned int udsl_ep_data_in;
-/* USB data zero padding bytes */
-static unsigned int udsl_snd_padding;
-static unsigned int udsl_rcv_padding;
 
 #define NORMAL_SPEED  0
 #define MAX_SPEED     1
@@ -221,10 +224,10 @@ UDSL_PARM_INT (num_snd_bufs);
 MODULE_PARM_DESC (num_snd_bufs, "Number of buffers used for transmission (range: 0-" __MODULE_STRING (UDSL_MAX_SND_BUFS) ", default: " __MODULE_STRING (UDSL_DEFAULT_SND_BUFS) ")");
 
 UDSL_PARM_INT (rcv_buf_size);
-MODULE_PARM_DESC (rcv_buf_size, "Size of the buffers used for reception (range: 0-" __MODULE_STRING (UDSL_MAX_RCV_BUF_SIZE) ", default: " __MODULE_STRING (UDSL_DEFAULT_RCV_BUF_SIZE) ")");
+MODULE_PARM_DESC (rcv_buf_size, "Reception buffer size in 53/56 bytes units(range: 0-" __MODULE_STRING (UDSL_MAX_RCV_BUF_SIZE) ", default: " __MODULE_STRING (UDSL_DEFAULT_RCV_BUF_SIZE) ")");
 
 UDSL_PARM_INT (snd_buf_size);
-MODULE_PARM_DESC (snd_buf_size, "Size of the buffers used for transmission (range: 0-" __MODULE_STRING (UDSL_MAX_SND_BUF_SIZE) ", default: " __MODULE_STRING (UDSL_DEFAULT_SND_BUF_SIZE) ")");
+MODULE_PARM_DESC (snd_buf_size, "Transmission buffer size in 53/64 bytes units(range: 0-" __MODULE_STRING (UDSL_MAX_SND_BUF_SIZE) ", default: " __MODULE_STRING (UDSL_DEFAULT_SND_BUF_SIZE) ")");
 
 #define UDSL_IOCTL_LINE_UP		1
 #define UDSL_IOCTL_LINE_DOWN		2
@@ -235,8 +238,9 @@ MODULE_PARM_DESC (snd_buf_size, "Size of the buffers used for transmission (rang
 #define hex2int(c) ( (c >= '0') && (c <= '9') ? (c - '0') : ((c & 0xf) + 9) )
 
 static struct usb_device_id udsl_usb_ids [] = {
-	{ USB_DEVICE (SPEEDTOUCH_VENDORID, SPEEDTOUCH_PRODUCTID) },
-	{ USB_DEVICE (AME_VENDORID, AME_PRODUCTID) },
+	{ USB_DEVICE (AME_VENDORID1, AME_PRODUCTID1) },
+	{ USB_DEVICE (AME_VENDORID2, AME_PRODUCTID2) },
+	{ USB_DEVICE (AME_VENDORID3, AME_PRODUCTID3) },
 	{ USB_DEVICE (CXACRU_VENDORID1, CXACRU_PRODUCTID1) },
 	{ USB_DEVICE (CXACRU_VENDORID2, CXACRU_PRODUCTID2) },
 	{ USB_DEVICE (CXACRU_VENDORID3, CXACRU_PRODUCTID3) },
@@ -275,8 +279,7 @@ struct udsl_vcc_data {
 	struct atm_vcc *vcc;
 
 	/* raw cell reassembly */
-	struct sk_buff *skb;
-	unsigned int max_pdu;
+	struct sk_buff *sarb;
 };
 
 /* send */
@@ -315,6 +318,13 @@ struct udsl_instance_data {
 	struct usb_device *usb_dev;
 	char description [64];
 	int firmware_loaded;
+	int modem_type;
+	/* USB data endpoints */
+	unsigned int udsl_ep_data_out;
+	unsigned int udsl_ep_data_in;
+	/* USB data zero padding bytes */
+	unsigned int udsl_snd_padding;
+	unsigned int udsl_rcv_padding;
 
 	/* ATM device part */
 	struct atm_dev *atm_dev;
@@ -345,7 +355,6 @@ struct udsl_instance_data {
 	struct sk_buff *current_skb;			/* being emptied */
 	struct udsl_send_buffer *current_buffer;	/* being filled */
 	struct list_head filled_send_buffers;
-
 };
 
 /* ATM */
@@ -409,18 +418,16 @@ static void udsl_extract_cells (struct udsl_instance_data *instance, unsigned ch
 {
 	struct udsl_vcc_data *cached_vcc = NULL;
 	struct atm_vcc *vcc;
-	struct sk_buff *skb;
+	struct sk_buff *sarb;
 	struct udsl_vcc_data *vcc_data;
 	int cached_vci = 0;
 	unsigned int i;
-	unsigned int length;
-	unsigned int pdu_length;
 	int pti;
 	int vci;
 	short cached_vpi = 0;
 	short vpi;
 
-	for (i = 0; i < howmany; i++, source += ATM_CELL_SIZE + udsl_rcv_padding) {
+	for (i = 0; i < howmany; i++, source += ATM_CELL_SIZE + instance->udsl_rcv_padding) {
 		vpi = ((source [0] & 0x0f) << 4) | (source [1] >> 4);
 		vci = ((source [1] & 0x0f) << 12) | (source [2] << 4) | (source [3] >> 4);
 		pti = (source [3] & 0x2) != 0;
@@ -439,74 +446,73 @@ static void udsl_extract_cells (struct udsl_instance_data *instance, unsigned ch
 		}
 
 		vcc = vcc_data->vcc;
+		sarb = vcc_data->sarb;
 
-		if (!vcc_data->skb && !(vcc_data->skb = dev_alloc_skb (vcc_data->max_pdu))) {
-			dbg ("udsl_extract_cells: no memory for skb (vcc: 0x%p)!", vcc);
-			if (pti)
-				atomic_inc (&vcc->stats->rx_err);
-			continue;
-		}
-
-		skb = vcc_data->skb;
-
-		if (skb->len + ATM_CELL_PAYLOAD > vcc_data->max_pdu) {
-			dbg ("udsl_extract_cells: buffer overrun (max_pdu: %u, skb->len %u, vcc: 0x%p)", vcc_data->max_pdu, skb->len, vcc);
+		if (sarb->tail + ATM_CELL_PAYLOAD > sarb->end) {
+			dbg ("udsl_extract_cells: buffer overrun (sarb->len %u, vcc: 0x%p)!", sarb->len, vcc);
 			/* discard cells already received */
-			skb_trim (skb, 0);
-			BUG_ON (vcc_data->max_pdu < ATM_CELL_PAYLOAD);
+			skb_trim (sarb, 0);
 		}
 
-		memcpy (skb->tail, source + ATM_CELL_HEADER, ATM_CELL_PAYLOAD);
-		__skb_put (skb, ATM_CELL_PAYLOAD);
+		memcpy (sarb->tail, source + ATM_CELL_HEADER, ATM_CELL_PAYLOAD);
+		__skb_put (sarb, ATM_CELL_PAYLOAD);
 
 		if (pti) {
+			struct sk_buff *skb;
+			unsigned int length;
+			unsigned int pdu_length;
+
 			length = (source [ATM_CELL_SIZE - 6] << 8) + source [ATM_CELL_SIZE - 5];
 
 			/* guard against overflow */
 			if (length > ATM_MAX_AAL5_PDU) {
-				dbg ("udsl_extract_cells: bogus length %u (vcc: 0x%p)", length, vcc);
-				goto drop;
+				dbg ("udsl_extract_cells: bogus length %u (vcc: 0x%p)!", length, vcc);
+				atomic_inc (&vcc->stats->rx_err);
+				goto out;
 			}
 
 			pdu_length = UDSL_NUM_CELLS (length) * ATM_CELL_PAYLOAD;
 
-			if (skb->len < pdu_length) {
-				dbg ("udsl_extract_cells: bogus pdu_length %u (skb->len: %u, vcc: 0x%p)", pdu_length, skb->len, vcc);
-				goto drop;
+			if (sarb->len < pdu_length) {
+				dbg ("udsl_extract_cells: bogus pdu_length %u (sarb->len: %u, vcc: 0x%p)!", pdu_length, sarb->len, vcc);
+				atomic_inc (&vcc->stats->rx_err);
+				goto out;
 			}
 
-			if (crc32_be (~0, skb->tail - pdu_length, pdu_length) != 0xc704dd7b) {
-				dbg ("udsl_extract_cells: packet failed crc check (vcc: 0x%p)", vcc);
-				goto drop;
+			if (crc32_be (~0, sarb->tail - pdu_length, pdu_length) != 0xc704dd7b) {
+				dbg ("udsl_extract_cells: packet failed crc check (vcc: 0x%p)!", vcc);
+				atomic_inc (&vcc->stats->rx_err);
+				goto out;
 			}
+
+			vdbg ("udsl_extract_cells: got packet (length: %u, pdu_length: %u, vcc: 0x%p)", length, pdu_length, vcc);
+
+			if (!(skb = dev_alloc_skb (length))) {
+				dbg ("udsl_extract_cells: no memory for skb (length: %u)!", length);
+				atomic_inc (&vcc->stats->rx_drop);
+				goto out;
+			}
+
+			vdbg ("udsl_extract_cells: allocated new sk_buff (skb: 0x%p, skb->truesize: %u)", skb, skb->truesize);
 
 			if (!atm_charge (vcc, skb->truesize)) {
-				dbg ("udsl_extract_cells: failed atm_charge (skb->truesize: %u)", skb->truesize);
-				goto drop_no_stats; /* atm_charge increments rx_drop */
+				dbg ("udsl_extract_cells: failed atm_charge (skb->truesize: %u)!", skb->truesize);
+				dev_kfree_skb (skb);
+				goto out; /* atm_charge increments rx_drop */
 			}
 
-			/* now that we are sure to send the skb, it is ok to change skb->data */
-			if (skb->len > pdu_length)
-				skb_pull (skb, skb->len - pdu_length); /* discard initial junk */
-
-			skb_trim (skb, length); /* drop zero padding and trailer */
-
-			atomic_inc (&vcc->stats->rx);
-
-			PACKETDEBUG (skb->data, skb->len);
+			memcpy (skb->data, sarb->tail - pdu_length, length);
+			__skb_put (skb, length);
 
 			vdbg ("udsl_extract_cells: sending skb 0x%p, skb->len %u, skb->truesize %u", skb, skb->len, skb->truesize);
 
+			PACKETDEBUG (skb->data, skb->len);
+
 			vcc->push (vcc, skb);
 
-			vcc_data->skb = NULL;
-
-			continue;
-
-drop:
-			atomic_inc (&vcc->stats->rx_err);
-drop_no_stats:
-			skb_trim (skb, 0);
+			atomic_inc (&vcc->stats->rx);
+out:
+			skb_trim (sarb, 0);
 		}
 	}
 }
@@ -557,7 +563,7 @@ static void udsl_groom_skb (struct atm_vcc *vcc, struct sk_buff *skb)
 	ctrl->aal5_trailer [7] = crc;
 }
 
-static unsigned int udsl_write_cells (unsigned int howmany, struct sk_buff *skb, unsigned char **target_p)
+static unsigned int udsl_write_cells (unsigned int howmany, struct sk_buff *skb, unsigned char **target_p, unsigned int udsl_snd_padding)
 {
 	struct udsl_control *ctrl = UDSL_SKB (skb);
 	unsigned char *target = *target_p;
@@ -602,12 +608,13 @@ static unsigned int udsl_write_cells (unsigned int howmany, struct sk_buff *skb,
 			memset (target, 0, udsl_snd_padding);
 			target += udsl_snd_padding;
 		}
+
 		memcpy (target, ctrl->cell_header, ATM_CELL_HEADER);
 		target += ATM_CELL_HEADER;
 		memset (target, 0, ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER);
 		target += ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER;
 
-		BUG_ON (--ctrl->num_cells);
+		DEBUG_ON (--ctrl->num_cells);
 	}
 
 	memcpy (target, ctrl->aal5_trailer, ATM_AAL5_TRAILER);
@@ -648,11 +655,11 @@ static void udsl_complete_receive (struct urb *urb, struct pt_regs *regs)
 	instance = rcv->instance;
 	buf = rcv->buffer;
 
- 	buf->filled_cells = urb->actual_length / (ATM_CELL_SIZE + udsl_rcv_padding);
+ 	buf->filled_cells = urb->actual_length / (ATM_CELL_SIZE + instance->udsl_rcv_padding);
 
 	vdbg ("udsl_complete_receive: urb 0x%p, status %d, actual_length %d, filled_cells %u, rcv 0x%p, buf 0x%p", urb, urb->status, urb->actual_length, buf->filled_cells, rcv, buf);
 
-	BUG_ON (buf->filled_cells > rcv_buf_size);
+	DEBUG_ON (buf->filled_cells > rcv_buf_size);
 
 	/* may not be in_interrupt() */
 	spin_lock_irqsave (&instance->receive_lock, flags);
@@ -688,9 +695,9 @@ made_progress:
 
 		usb_fill_bulk_urb (rcv->urb,
 				   instance->usb_dev,
-                                   usb_rcvbulkpipe (instance->usb_dev, udsl_ep_data_in),
+                                   usb_rcvbulkpipe (instance->usb_dev, instance->udsl_ep_data_in),
                                    buf->base,
-                                   rcv_buf_size * (ATM_CELL_SIZE + udsl_rcv_padding),
+                                   rcv_buf_size * (ATM_CELL_SIZE + instance->udsl_rcv_padding),
                                    udsl_complete_receive,
                                    rcv);
 
@@ -779,12 +786,11 @@ made_progress:
 		spin_unlock_irq (&instance->send_lock);
 
 		snd->buffer = buf;
-
 	        usb_fill_bulk_urb (snd->urb,
 			       instance->usb_dev,
-			       usb_sndbulkpipe (instance->usb_dev, udsl_ep_data_out),
+			       usb_sndbulkpipe (instance->usb_dev, instance->udsl_ep_data_out),
 			       buf->base,
-			       (snd_buf_size - buf->free_cells) * (ATM_CELL_SIZE + udsl_snd_padding),
+			       (snd_buf_size - buf->free_cells) * (ATM_CELL_SIZE + instance->udsl_snd_padding),
 			       udsl_complete_send,
 			       snd);
 
@@ -829,7 +835,7 @@ made_progress:
 		instance->current_buffer = buf;
 	}
 
-	num_written = udsl_write_cells (buf->free_cells, skb, &buf->free_start);
+	num_written = udsl_write_cells (buf->free_cells, skb, &buf->free_start, instance->udsl_snd_padding);
 
 	vdbg ("udsl_process_send: wrote %u cells from skb 0x%p to buffer 0x%p", num_written, skb, buf);
 
@@ -994,6 +1000,7 @@ static int udsl_atm_open (struct atm_vcc *vcc, short vpi, int vci)
 {
 	struct udsl_instance_data *instance = vcc->dev->dev_data;
 	struct udsl_vcc_data *new;
+	unsigned int max_pdu;
 
 	dbg ("udsl_atm_open: vpi %hd, vci %d", vpi, vci);
 
@@ -1006,8 +1013,10 @@ static int udsl_atm_open (struct atm_vcc *vcc, short vpi, int vci)
 		return -EINVAL;
 
 	/* only support AAL5 */
-	if ((vcc->qos.aal != ATM_AAL5) || (vcc->qos.rxtp.max_sdu < 0) || (vcc->qos.rxtp.max_sdu > ATM_MAX_AAL5_PDU))
+	if ((vcc->qos.aal != ATM_AAL5) || (vcc->qos.rxtp.max_sdu < 0) || (vcc->qos.rxtp.max_sdu > ATM_MAX_AAL5_PDU)) {
+		dbg ("udsl_atm_open: unsupported ATM type %d!", vcc->qos.aal);
 		return -EINVAL;
+	}
 
 	if (!instance->firmware_loaded) {
 		dbg ("udsl_atm_open: firmware not loaded!");
@@ -1017,11 +1026,13 @@ static int udsl_atm_open (struct atm_vcc *vcc, short vpi, int vci)
 	down (&instance->serialize); /* vs self, udsl_atm_close */
 
 	if (udsl_find_vcc (instance, vpi, vci)) {
+		dbg ("udsl_atm_open: %hd/%d already in use!", vpi, vci);
 		up (&instance->serialize);
 		return -EADDRINUSE;
 	}
 
 	if (!(new = kmalloc (sizeof (struct udsl_vcc_data), GFP_KERNEL))) {
+		dbg ("udsl_atm_open: no memory for vcc_data!");
 		up (&instance->serialize);
 		return -ENOMEM;
 	}
@@ -1030,7 +1041,15 @@ static int udsl_atm_open (struct atm_vcc *vcc, short vpi, int vci)
 	new->vcc = vcc;
 	new->vpi = vpi;
 	new->vci = vci;
-	new->max_pdu = max (1, UDSL_NUM_CELLS (vcc->qos.rxtp.max_sdu)) * ATM_CELL_PAYLOAD;
+
+	/* udsl_extract_cells requires at least one cell */
+	max_pdu = max (1, UDSL_NUM_CELLS (vcc->qos.rxtp.max_sdu)) * ATM_CELL_PAYLOAD;
+	if (!(new->sarb = alloc_skb (max_pdu, GFP_KERNEL))) {
+		dbg ("udsl_atm_open: no memory for SAR buffer!");
+	        kfree (new);
+		up (&instance->serialize);
+		return -ENOMEM;
+	}
 
 	vcc->dev_data = new;
 	vcc->vpi = vpi;
@@ -1048,7 +1067,7 @@ static int udsl_atm_open (struct atm_vcc *vcc, short vpi, int vci)
 
 	tasklet_schedule (&instance->receive_tasklet);
 
-	dbg ("udsl_atm_open: allocated vcc data 0x%p (max_pdu: %u)", new, new->max_pdu);
+	dbg ("udsl_atm_open: allocated vcc data 0x%p (max_pdu: %u)", new, max_pdu);
 
 	return 0;
 }
@@ -1075,9 +1094,8 @@ static void udsl_atm_close (struct atm_vcc *vcc)
 	list_del (&vcc_data->list);
 	tasklet_enable (&instance->receive_tasklet);
 
-	if (vcc_data->skb)
-		dev_kfree_skb (vcc_data->skb);
-	vcc_data->skb = NULL;
+	kfree_skb (vcc_data->sarb);
+	vcc_data->sarb = NULL;
 
 	kfree (vcc_data);
 	vcc->dev_data = NULL;
@@ -1114,7 +1132,7 @@ static int udsl_set_alternate (struct udsl_instance_data *instance)
 	if (!instance->firmware_loaded) {
 		int ret;
 
-		if (udsl_modem_type == UDSL_MODEM_TYPE1) {
+		if (instance->modem_type == UDSL_MODEM_TYPE1) {
 			if ((ret = usb_set_interface (instance->usb_dev, 1, 1)) < 0) {
 				dbg ("udsl_set_alternate: usb_set_interface returned %d!", ret);
 				up (&instance->serialize);
@@ -1148,9 +1166,9 @@ static int udsl_usb_ioctl (struct usb_interface *intf, unsigned int code, void *
 		return -ENODEV;
 	}
 
-	if (udsl_modem_type == UDSL_MODEM_TYPE1)
-		intf = usb_ifnum_to_if(dev, 1);
-	else
+	/* modem type 1 uses interface 1, others interface 0 */
+	intf = usb_ifnum_to_if(dev, 1);
+	if (!intf)
 		intf = usb_ifnum_to_if(dev, 0);
 
 	if (!intf) {
@@ -1185,10 +1203,13 @@ static int udsl_usb_ioctl (struct usb_interface *intf, unsigned int code, void *
 /* check if it is a known modem */
 static int udsl_usb_check_modem(unsigned int vid, unsigned int pid, unsigned int cl, unsigned int ifn)
 {
-	if (vid == SPEEDTOUCH_VENDORID && pid == SPEEDTOUCH_PRODUCTID && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
+	if (vid == AME_VENDORID1 && pid == AME_PRODUCTID1 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
+ 		return UDSL_MODEM_TYPE1;
+
+	else if (vid == AME_VENDORID2 && pid == AME_PRODUCTID2 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
 		return UDSL_MODEM_TYPE1;
 
-	else if (vid == AME_VENDORID && pid == AME_PRODUCTID && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
+	else if (vid == AME_VENDORID3 && pid == AME_PRODUCTID3 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
 		return UDSL_MODEM_TYPE1;
 
 	else if (vid == CXACRU_VENDORID1 && pid == CXACRU_PRODUCTID1 && cl == USB_CLASS_PER_INTERFACE && ifn == 0)
@@ -1225,26 +1246,29 @@ static int udsl_usb_check_modem(unsigned int vid, unsigned int pid, unsigned int
 }
 
 /* configure modem */
-static void udsl_usb_configure_modem(unsigned int modem_type)
+static void udsl_usb_configure_modem(struct udsl_instance_data *instance)
 {
-	switch (modem_type) {
+	if (!instance)
+		return;
+
+	switch (instance->modem_type) {
 	case UDSL_MODEM_TYPE1:
-		udsl_ep_data_out = 0x07;
-		udsl_ep_data_in = 0x87;
-		udsl_snd_padding = 0;
-		udsl_rcv_padding = 0;
+		instance->udsl_ep_data_out = 0x07;
+		instance->udsl_ep_data_in = 0x87;
+		instance->udsl_snd_padding = 0;
+		instance->udsl_rcv_padding = 0;
 		break;
 	case UDSL_MODEM_TYPE2:
-		udsl_ep_data_out = 0x02;
-		udsl_ep_data_in = 0x82;
-		udsl_snd_padding = 11;
-		udsl_rcv_padding = 3;
+		instance->udsl_ep_data_out = 0x02;
+		instance->udsl_ep_data_in = 0x82;
+		instance->udsl_snd_padding = 11;
+		instance->udsl_rcv_padding = 3;
 		break;	
 	case UDSL_MODEM_TYPE3:
-		udsl_ep_data_out = 0x02;
-		udsl_ep_data_in = 0x82;
-		udsl_snd_padding = 11;
-		udsl_rcv_padding = 0;
+		instance->udsl_ep_data_out = 0x02;
+		instance->udsl_ep_data_in = 0x82;
+		instance->udsl_snd_padding = 11;
+		instance->udsl_rcv_padding = 0;
 		break;	
 	}
 }
@@ -1263,6 +1287,7 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	unsigned char mac_str [13];
 	int i, length;
 	char *buf;
+	int modem_type;
 
 	speed = 0;  // Not implemented yet
 	open = 0;  // Not implemented yet
@@ -1270,7 +1295,7 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	dbg ("udsl_usb_probe: trying device with vendor=0x%x, product=0x%x, ifnum %d",
 	     dev->descriptor.idVendor, dev->descriptor.idProduct, ifnum);
 
-	if ((udsl_modem_type = udsl_usb_check_modem(dev->descriptor.idVendor, dev->descriptor.idProduct, dev->descriptor.bDeviceClass, ifnum)) < 0)
+	if ((modem_type = udsl_usb_check_modem(dev->descriptor.idVendor, dev->descriptor.idProduct, dev->descriptor.bDeviceClass, ifnum)) < 0)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
 		return NULL;
 #else
@@ -1279,8 +1304,6 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 
 	dbg ("udsl_usb_probe: device accepted");
 
-	udsl_usb_configure_modem(udsl_modem_type);
-	
 	/* instance init */
 	if (!(instance = kmalloc (sizeof (struct udsl_instance_data), GFP_KERNEL))) {
 		dbg ("udsl_usb_probe: no memory for instance data!");
@@ -1296,6 +1319,8 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	init_MUTEX (&instance->serialize);
 
 	instance->usb_dev = dev;
+	instance->modem_type = modem_type;
+	udsl_usb_configure_modem(instance);
 
 	INIT_LIST_HEAD (&instance->vcc_list);
 
@@ -1316,7 +1341,7 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	INIT_LIST_HEAD (&instance->filled_send_buffers);
 
 	/* receive init */
-	for (i = 0; i < num_rcv_urbs; i++) {
+	for (i = 0; i < (int) num_rcv_urbs; i++) {
 		struct udsl_receiver *rcv = &(instance->receivers [i]);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
@@ -1333,10 +1358,10 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 		list_add (&rcv->list, &instance->spare_receivers);
 	}
 
-	for (i = 0; i < num_rcv_bufs; i++) {
+	for (i = 0; i < (int) num_rcv_bufs; i++) {
 		struct udsl_receive_buffer *buf = &(instance->receive_buffers [i]);
 
-		if (!(buf->base = kmalloc (rcv_buf_size * (ATM_CELL_SIZE + udsl_rcv_padding), GFP_KERNEL))) {
+		if (!(buf->base = kmalloc (rcv_buf_size * (ATM_CELL_SIZE + instance->udsl_rcv_padding), GFP_KERNEL))) {
 			dbg ("udsl_usb_probe: no memory for receive buffer %d!", i);
 			goto fail;
 		}
@@ -1345,7 +1370,7 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	}
 
 	/* send init */
-	for (i = 0; i < num_snd_urbs; i++) {
+	for (i = 0; i < (int) num_snd_urbs; i++) {
 		struct udsl_sender *snd = &(instance->senders [i]);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
@@ -1362,10 +1387,10 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 		list_add (&snd->list, &instance->spare_senders);
 	}
 
-	for (i = 0; i < num_snd_bufs; i++) {
+	for (i = 0; i < (int) num_snd_bufs; i++) {
 		struct udsl_send_buffer *buf = &(instance->send_buffers [i]);
 
-		if (!(buf->base = kmalloc (snd_buf_size * (ATM_CELL_SIZE + udsl_snd_padding), GFP_KERNEL))) {
+		if (!(buf->base = kmalloc (snd_buf_size * (ATM_CELL_SIZE + instance->udsl_snd_padding), GFP_KERNEL))) {
 			dbg ("udsl_usb_probe: no memory for send buffer %d!", i);
 			goto fail;
 		}
@@ -1387,7 +1412,7 @@ static int udsl_usb_probe (struct usb_interface *intf, const struct usb_device_i
 	instance->atm_dev->link_rate = 128 * 1000 / 424;
 
 	memset (instance->atm_dev->esi, 0, sizeof (instance->atm_dev->esi));
-	if (udsl_modem_type == UDSL_MODEM_TYPE1) {
+	if (instance->modem_type == UDSL_MODEM_TYPE1) {
 		/* set MAC address, it is stored in the serial number */
 		if (usb_string (dev, dev->descriptor.iSerialNumber, mac_str, sizeof (mac_str)) == 12)
 			for (i = 0; i < 6; i++)
@@ -1438,16 +1463,16 @@ finish:
 #endif
 
 fail:
-	for (i = 0; i < num_snd_bufs; i++)
+	for (i = 0; i < (int) num_snd_bufs; i++)
 		kfree (instance->send_buffers [i].base);
 
-	for (i = 0; i < num_snd_urbs; i++)
+	for (i = 0; i < (int) num_snd_urbs; i++)
 		usb_free_urb (instance->senders [i].urb);
 
-	for (i = 0; i < num_rcv_bufs; i++)
+	for (i = 0; i < (int) num_rcv_bufs; i++)
 		kfree (instance->receive_buffers [i].base);
 
-	for (i = 0; i < num_rcv_urbs; i++)
+	for (i = 0; i < (int) num_rcv_urbs; i++)
 		usb_free_urb (instance->receivers [i].urb);
 
 	kfree (instance);
@@ -1482,17 +1507,16 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 	/* receive finalize */
 	tasklet_disable (&instance->receive_tasklet);
 
-	for (i = 0; i < num_rcv_urbs; i++)
+	for (i = 0; i < (int) num_rcv_urbs; i++)
 		if ((result = usb_unlink_urb (instance->receivers [i].urb)) < 0)
-			dbg ("udsl_usb_disconnect: usb_unlink_urb on receive urb %d returned %d", i, result);
+			dbg ("udsl_usb_disconnect: usb_unlink_urb on receive urb %d returned %d!", i, result);
 
 	/* wait for completion handlers to finish */
 	do {
 		count = 0;
 		spin_lock_irq (&instance->receive_lock);
 		list_for_each (pos, &instance->spare_receivers)
-			if (++count > num_rcv_urbs)
-				panic (__FILE__ ": memory corruption detected at line %d!\n", __LINE__);
+			DEBUG_ON (++count > num_rcv_urbs);
 		spin_unlock_irq (&instance->receive_lock);
 
 		dbg ("udsl_usb_disconnect: found %u spare receivers", count);
@@ -1510,26 +1534,25 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 	tasklet_enable (&instance->receive_tasklet);
 
-	for (i = 0; i < num_rcv_urbs; i++)
+	for (i = 0; i < (int) num_rcv_urbs; i++)
 		usb_free_urb (instance->receivers [i].urb);
 
-	for (i = 0; i < num_rcv_bufs; i++)
+	for (i = 0; i < (int) num_rcv_bufs; i++)
 		kfree (instance->receive_buffers [i].base);
 
 	/* send finalize */
 	tasklet_disable (&instance->send_tasklet);
 
-	for (i = 0; i < num_snd_urbs; i++)
+	for (i = 0; i < (int) num_snd_urbs; i++)
 		if ((result = usb_unlink_urb (instance->senders [i].urb)) < 0)
-			dbg ("udsl_usb_disconnect: usb_unlink_urb on send urb %d returned %d", i, result);
+			dbg ("udsl_usb_disconnect: usb_unlink_urb on send urb %d returned %d!", i, result);
 
 	/* wait for completion handlers to finish */
 	do {
 		count = 0;
 		spin_lock_irq (&instance->send_lock);
 		list_for_each (pos, &instance->spare_senders)
-			if (++count > num_snd_urbs)
-				panic (__FILE__ ": memory corruption detected at line %d!\n", __LINE__);
+			DEBUG_ON (++count > num_snd_urbs);
 		spin_unlock_irq (&instance->send_lock);
 
 		dbg ("udsl_usb_disconnect: found %u spare senders", count);
@@ -1548,10 +1571,10 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 	tasklet_enable (&instance->send_tasklet);
 
-	for (i = 0; i < num_snd_urbs; i++)
+	for (i = 0; i < (int) num_snd_urbs; i++)
 		usb_free_urb (instance->senders [i].urb);
 
-	for (i = 0; i < num_snd_bufs; i++)
+	for (i = 0; i < (int) num_snd_bufs; i++)
 		kfree (instance->send_buffers [i].base);
 
 	wmb ();
@@ -1568,11 +1591,9 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 static int __init udsl_usb_init (void)
 {
-	struct sk_buff *skb; /* dummy for sizeof */
-
 	dbg ("udsl_usb_init: driver version " DRIVER_VERSION);
 
-	if (sizeof (struct udsl_control) > sizeof (skb->cb)) {
+	if (sizeof (struct udsl_control) > sizeof (((struct sk_buff *)0)->cb)) {
 		printk (KERN_ERR __FILE__ ": unusable with this kernel!\n");
 		return -EIO;
 	}

@@ -8,7 +8,7 @@ DEST_KERNEL = $(shell uname -r)
 KERNEL_PATH = /lib/modules/$(DEST_KERNEL)/build
 #KERNEL_PATH = /usr/src/linux
 CC = gcc
-CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX
+CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX -Wsign-compare
 INCLUDES = -I$(KERNEL_PATH)/include 
 LDFLAGS = -latm
 BIN_PATH = /usr/sbin

@@ -1,3 +1,6 @@
+http://www-106.ibm.com/developerworks/library/l-inside.html?ca=dnt-438
 http://kerneltrap.org/node/view/799
 http://linuxbooks.pananix.com/kernel2.6.html
-ftp://ftp.kernel.org/pub/linux/kernel/people/davej/misc/post-halloween-2.5.txt
+http://www.codemonkey.org.uk/docs/post-halloween-2.6.txt
+http://www.terra.es/personal/diegocg/post-halloween-2.6.es.txt
+http://lwn.net/Articles/driver-porting/

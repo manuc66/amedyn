@@ -38,6 +38,10 @@
 
   12/10/2003 Mathias Gug
   Fix claim interfaces 0, 1
+
+  27/10/2003 Josep Comas
+  Credits update
+  Ajust sign int types values
 */
 
 
@@ -145,7 +149,7 @@ struct usb_modem_char {
   unsigned int vid;  /* VendorID */
   unsigned int pid;  /* ProductID */
   char *firmfile;  /* firmware file name */
-  unsigned int datamax;  /* maximum data that we can send in a block */
+  int datamax;  /* maximum data that we can send in a block */
 };
 struct usb_modem_char modem_char;
 
@@ -392,7 +396,7 @@ int jump_to_address(usb_dev_handle *adsl_handle, unsigned int place)
 }
 
 /* load firmware */
-int load_firmware(usb_dev_handle *adsl_handle, unsigned int tmodem)
+int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 {
   unsigned char buf[0x1ff];   /* buffer */
   FILE *soft;   /* file handle */
@@ -742,7 +746,8 @@ int main(int argc, char *argv[])
   printf(gettext("Zyxel 630-11 & Asus AAM6000UG microcode upload program."));
   printf(" 12/10/2003\n");
   printf("Josep Comas <jcomas@gna.es>\n");
-  printf("Sundar <sundar@cynaptix.biz>\n\n");
+  printf("Sundar <sundar@cynaptix.biz>\n");
+  printf("Eduardo Espejo <eespejo@users.sourceforge.net>\n\n");
 
   /* check parameters */
 /*

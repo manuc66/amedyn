@@ -57,12 +57,14 @@ all: normal debug
 normal: $(xdslusb-files)
 	rm -f $(xdslusb-module-objs)
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module) modules
+#	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module) EXTRA_CFLAGS="-Wsign-compare" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) MAKEFILES=$(CONFIG_PATH)/$(CONFIG_NAME) XDSLUSB-MODULE=$(xdslusb-module) modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) V=1 modules
 
 debug: $(xdslusb-files)
 	rm -f $(xdslusb-module-objs)
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
+#	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG -Wsign-compare" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) MAKEFILES=$(CONFIG_PATH)/$(CONFIG_NAME) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
 
 install: $(xdslusb-module-name) $(xdslusb-debug-module-name) 

@@ -29,8 +29,11 @@
   21/7/2003 Josep Comas
   Added support for Asus AAM6000UG
 
-  24/9/2003 Josep Comas
+  24/9/2003 Eduardo Espejo
   Changed u_ioctl.ifno = 0 by u_ioctl.ifno = 1
+
+  27/10/2003 Josep Comas
+  Credits update
 */
 
 
@@ -124,7 +127,8 @@ int main(int argc, char *argv[])
   printf(gettext("Zxyel 630-11 & Asus AAM6000UG ioctl call."));
   printf(" 24/9/2003\n");
   printf("Josep Comas <jcomas@gna.es>\n");
-  printf("Sundar <sundar@cynaptix.biz>\n\n");
+  printf("Sundar <sundar@cynaptix.biz>\n");
+  printf("Eduardo Espejo <eespejo@users.sourceforge.net>\n\n");
 
   /* check parameters */
   if (argc < 2)
