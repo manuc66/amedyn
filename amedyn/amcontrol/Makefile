@@ -6,7 +6,6 @@
 DEST_MACHINE = $(shell uname -m)
 CC = gcc
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign-compare
-CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -march=$(DEST_MACHINE) -Wall -DLINUX -Wsign-compare
 INCLUDES = -I../include
 LDFLAGS = -lusb -lncurses
 LDFLAGS = -lusb 
