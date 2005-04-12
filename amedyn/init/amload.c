@@ -724,16 +724,14 @@ void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode)
   }
 
   switch (tmodem) {
-      modem_char.firmfile = "/usr/sbin/fw-usb.bin";
-      modem_char.initfirmfile = "/usr/sbin/Init-usb.bin";
+
     /* AME Dynamite USB Modem */
     case 1:
       modem_char.datamax = 0x1a0;
       modem_char.firmfile = "/lib/firmware/fw-usb.bin";
       modem_char.initfirmfile = "/lib/firmware/Init-usb.bin";
       break;
-      modem_char.firmfile = "/usr/sbin/Fw-usb_A.bin";
-      modem_char.initfirmfile = "/usr/sbin/Init-usb.bin";
+
    /* Asus AAM6000UG */
     case 2:
       modem_char.datamax = 0x1f2;
