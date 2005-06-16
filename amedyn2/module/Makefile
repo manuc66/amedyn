@@ -3,7 +3,6 @@ ifndef KERNELDIR
 endif
 
 obj-m := usbatm.o amedyn2.o
-obj-m := usb_atm.o amedyn.o usbatm.o amedyn2.o
 obj-m := usbatm.o amedyn2.o
 obj-m := usbatm.o amedyn2.o xusbatm.o
 
