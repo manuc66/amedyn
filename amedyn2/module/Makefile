@@ -3,7 +3,6 @@ ifndef KERNELDIR
 endif
 
 obj-m := usbatm.o amedyn2.o
-obj-m := usb_atm.o amedyn.o
 obj-m := usb_atm.o amedyn.o usbatm.o amedyn2.o
 obj-m := usbatm.o amedyn2.o
 obj-m := usbatm.o amedyn2.o xusbatm.o
@@ -23,7 +22,6 @@ install: uninstall_amedyn
 	/sbin/depmod -ae
 
 uninstall:
-	rm -f /lib/modules/$(shell uname -r)/extra/amedyn.ko
 	rm -f /lib/modules/$(shell uname -r)/extra/usb_atm.ko
 uninstall_amedyn:
 	rm -f /lib/modules/$(shell uname -r)/extra/amedyn.ko
