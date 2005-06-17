@@ -50,7 +50,6 @@ compile: AME_INIT AME_MODULE AME_CONTROL BRIDGED
 
 install: AME_MODULE_install
 install: remove_service AME_INIT_install AME_MODULE_install AME_SCRIPTS_install  AME_CONTROL_install BRIDGED_install
-	cd init && make
 
 AME_INIT: init
 
@@ -107,14 +106,12 @@ rpm: clean compile_install
 	mv ${RPM_BIN_NAME} ..
 	mv -f /etc/amedyn.config /etc/amedyn
 
-	cd init && make uninstall
 uninstall: module
 #uninstall: firmware init module scripts panel bridged
 uninstall: init module scripts bridged
 	cd module && make uninstall
 	cd scripts && make uninstall
 	cd bridged && make uninstall
-	cd init && make clean
 
 clean: module
 #clean: init module sarlib panel bridged
