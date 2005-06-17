@@ -92,7 +92,6 @@ static int usbatm_print_packet(const unsigned char *data, int len);
 #endif
 
 #define DRIVER_AUTHOR	"Johan Verrept, Duncan Sands <duncan.sands@free.fr>"
-#define DRIVER_VERSION	"1.9"
 #define DRIVER_VERSION	"1.10-OAM"
 #define DRIVER_VERSION	"1.9-OAM"
 #define DRIVER_DESC	"Generic USB ATM/DSL I/O, version " DRIVER_VERSION
@@ -204,6 +203,30 @@ static struct atmdev_ops usbatm_atm_devops = {
 ***********/
 
 static inline unsigned int usbatm_pdu_length(unsigned int length)
+{
+	length += ATM_CELL_PAYLOAD - 1 + ATM_AAL5_TRAILER;
+	return length - length % ATM_CELL_PAYLOAD;
+}
+		dev_kfree_skb(skb);
+
+static inline void usbatm_pop(struct atm_vcc *vcc, struct sk_buff *skb)
+{
+	if (vcc->pop)
+		vcc->pop(vcc, skb);
+	else
+		dev_kfree_skb_any(skb);
+}
+
+static u16 crc10_table[256] = {
+	0x000, 0x233, 0x255, 0x066, 0x299, 0x0aa, 0x0cc, 0x2ff, 0x301, 0x132, 0x154, 0x367, 0x198, 0x3ab, 0x3cd, 0x1fe,
+	0x031, 0x202, 0x264, 0x057, 0x2a8, 0x09b, 0x0fd, 0x2ce, 0x330, 0x103, 0x165, 0x356, 0x1a9, 0x39a, 0x3fc, 0x1cf,
+	0x062, 0x251, 0x237, 0x004, 0x2fb, 0x0c8, 0x0ae, 0x29d, 0x363, 0x150, 0x136, 0x305, 0x1fa, 0x3c9, 0x3af, 0x19c,
+	0x053, 0x260, 0x206, 0x035, 0x2ca, 0x0f9, 0x09f, 0x2ac, 0x352, 0x161, 0x107, 0x334, 0x1cb, 0x3f8, 0x39e, 0x1ad,
+	0x0c4, 0x2f7, 0x291, 0x0a2, 0x25d, 0x06e, 0x008, 0x23b, 0x3c5, 0x1f6, 0x190, 0x3a3, 0x15c, 0x36f, 0x309, 0x13a,
+	0x0f5, 0x2c6, 0x2a0, 0x093, 0x26c, 0x05f, 0x039, 0x20a, 0x3f4, 0x1c7, 0x1a1, 0x392, 0x16d, 0x35e, 0x338, 0x10b,
+	0x0a6, 0x295, 0x2f3, 0x0c0, 0x23f, 0x00c, 0x06a, 0x259, 0x3a7, 0x194, 0x1f2, 0x3c1, 0x13e, 0x30d, 0x36b, 0x158,
+	0x097, 0x2a4, 0x2c2, 0x0f1, 0x20e, 0x03d, 0x05b, 0x268, 0x396, 0x1a5, 0x1c3, 0x3f0, 0x10f, 0x33c, 0x35a, 0x169,
+	0x188, 0x3bb, 0x3dd, 0x1ee, 0x311, 0x122, 0x144, 0x377, 0x289, 0x0ba, 0x0dc, 0x2ef, 0x010, 0x223, 0x245, 0x076,
 	0x1b9, 0x38a, 0x3ec, 0x1df, 0x320, 0x113, 0x175, 0x346, 0x2b8, 0x08b, 0x0ed, 0x2de, 0x021, 0x212, 0x274, 0x047,
 	0x1ea, 0x3d9, 0x3bf, 0x18c, 0x373, 0x140, 0x126, 0x315, 0x2eb, 0x0d8, 0x0be, 0x28d, 0x072, 0x241, 0x227, 0x014,
 	0x1db, 0x3e8, 0x38e, 0x1bd, 0x342, 0x171, 0x117, 0x324, 0x2da, 0x0e9, 0x08f, 0x2bc, 0x043, 0x270, 0x216, 0x025,
@@ -281,8 +304,44 @@ static void usbatm_complete(struct urb *urb, struct pt_regs *regs)
 	struct usbatm_channel *channel = urb->context;
 	unsigned long flags;
 
+	vdbg("%s: urb 0x%p, status %d, actual_length %d",
+	     __func__, urb, urb->status, urb->actual_length);
+	if (unlikely(urb->status))
+
+	if (unlikely(urb->status)) {
+	spin_unlock_irqrestore(&channel->lock, flags);
+	else
+
+	if (unlikely(urb->status) &&
+			(!(channel->usbatm->flags & UDSL_IGNORE_EILSEQ) ||
+			 urb->status != -EILSEQ ))
+	{
+		if (urb->status == -ESHUTDOWN)
+		if (printk_ratelimit())
+			atm_warn(channel->usbatm, "%s: urb 0x%p failed (%d)!
+",
+				__func__, urb, urb->status);
+		/* throttle processing in case of an error */
+		mod_timer(&channel->delay, jiffies + msecs_to_jiffies(THROTTLE_MSECS));
+	} else
+		tasklet_schedule(&channel->tasklet);
+}
+
+/* OAM loopback reply (fire-and-forget) */
+static int usbatm_oam_reply(struct usbatm_data *instance, u8 *source)
+{
+	struct urb *urb;
+	u16 crc;
+	u8 *buffer;
+
+	if (source[ATM_CELL_HEADER] != 0x18 || source[ATM_CELL_HEADER + 1] != 0x01) {
+		atm_dbg(instance, "%s: unexpected OAM type/function %x direction %x!
+",
 			__func__, source[ATM_CELL_HEADER], source[ATM_CELL_HEADER + 1]);
 		return -EPROTO;
+	}
+
+	if (crc10(0, source + ATM_CELL_HEADER, ATM_CELL_PAYLOAD)) {
 		atm_dbg(instance, "%s: OAM CRC10 error!
 ", __func__);
 		return -EIO;
@@ -335,9 +394,9 @@ static inline struct usbatm_vcc_data *usbatm_find_vcc(struct usbatm_data *instan
 }
 		vdbg("%s: vpi %hd, vci %d, pti %d", __func__, vpi, vci, pti);
 {
-			atm_warn(instance, "%s: OAM not supported (vpi %d, vci %d)!
-", __func__, vpi, vci);
-			atomic_inc(&vcc->stats->rx_err);
+	struct atm_vcc *vcc;
+		if ((vci != cached_vci) || (vpi != cached_vpi)) {
+			cached_vpi = vpi;
 			cached_vci = vci;
 	struct sk_buff *sarb;
 	short vpi = ((source[0] & 0x0f) << 4)  | (source[1] >> 4);
