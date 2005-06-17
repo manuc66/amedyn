@@ -3,6 +3,7 @@ Before test this new package:
 	- IT IS ONLY FOR  KERNEL >= 2.6.12
 	    See: ftp://ftp.kernel.org/pub/linux/kernel/people/gregkh/driver_core/2.6/2.6.12-rc3/driver-02-2.6.12-rc3.patch
 
+	- READ AGAIN THIS FILE IF YOU DOWNLOAD A NEW VERSION.
 	- SURE YOU HAVE ACTUAL DRIVER PACKAGE PREPARE TO FULL REINSTALL IT IF
 	SOMETHING GO WRONG.
 	- DON'T DO ANYTHING IMPORTANT AT COMPUTER WHILE YOU TEST IT.
