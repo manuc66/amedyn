@@ -64,7 +64,6 @@ AME_SCRIPTS: scripts
 
 BRIDGED: bridged
 	cd bridged && make
-	cd init && make install
 
 AME_INIT_install: init
 
