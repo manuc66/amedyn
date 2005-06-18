@@ -22,6 +22,10 @@
  ******************************************************************************/
 
 /*
+ *  Credit is due for Josep Comas, who created the userspace firmware loading
+ *  utility.
+ */
+
 #include <asm/page.h>
 #include <linux/device.h>
 #include <linux/errno.h>
