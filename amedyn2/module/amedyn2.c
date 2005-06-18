@@ -54,11 +54,6 @@ static const char amedyn_driver_name[] = "amedyn2";
 /* Alcatel Microelectronics new reference design */
 #define AME_VENDORID2		        0x06b9  /* Vendor = Zyxel */
 #define AME_PRODUCTID2		        0xa5a5  /* Product = 630-11 & 630-13 */
-// /* Modem types */
-// #define UDSL_MODEM_TYPE1                0  /* Alcatel reference design */
-// #define UDSL_MODEM_TYPE2                1  /* Conexant reference design */
-// #define UDSL_MODEM_TYPE3                2  /* 3Com reference design (Alcatel DSP) */
-
 #define AME_VENDORID3		        0x0b05  /* Vendor = Asustek */
 #define AME_PRODUCTID3		        0x6206  /* Product = AAM6000UG with Alcatel chipset */
 #define AME_PRODUCTID4		        0x0005  /* Product = */
@@ -70,28 +65,14 @@ static const char amedyn_driver_name[] = "amedyn2";
 
 #define MIN_POLL_DELAY		5000	/* milliseconds */
 #define MAX_POLL_DELAY		60000	/* milliseconds */
-// #define DEFAULT_DL_512_FIRST	0
-// #define DEFAULT_SW_BUFFERING	0
 
 #define DEFAULT_ALTSETTING	1
-// static int dl_512_first = DEFAULT_DL_512_FIRST;
-// static int sw_buffering = DEFAULT_SW_BUFFERING;
 
 #define DEFAULT_BULK_ALTSETTING	1
 static int altsetting = DEFAULT_ALTSETTING;
 
 module_param(altsetting, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(altsetting,
-// module_param(dl_512_first, bool, S_IRUGO | S_IWUSR);
-// MODULE_PARM_DESC(dl_512_first,
-// 		 "Read 512 bytes before sending firmware (default: "
-// 		 __MODULE_STRING(DEFAULT_DL_512_FIRST) ")");
-// 
-// module_param(sw_buffering, bool, S_IRUGO | S_IWUSR);
-// MODULE_PARM_DESC(sw_buffering,
-// 		 "Enable software buffering (default: "
-// 		 __MODULE_STRING(DEFAULT_SW_BUFFERING) ")");
-
 		 "Alternative setting for data interface (default: "
 		 __MODULE_STRING(DEFAULT_ALTSETTING) ")");
 #define DEFAULT_ISOC_ALTSETTING	1 /* This modem don't have iso*/
@@ -593,8 +574,6 @@ static void amedyn_check_status(struct work_struct *work)
 
 	struct amedyn_instance_data *instance =
 		container_of(work, struct amedyn_instance_data,
-//	    printk(KERN_NOTICE "amedyn_get_status return useless info
-");
 			     status_checker.work); 
 	struct usbatm_data *usbatm = instance->usbatm;
 	struct atm_dev *atm_dev = usbatm->atm_dev;
