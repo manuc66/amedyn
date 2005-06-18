@@ -694,8 +694,6 @@ static void amedyn_check_status(struct work_struct *work)
 	}
 
 
-	atm_warn(usbatm, "%s entered
-", __func__);
 		case 0x10:
 			atm_dev->signal = ATM_PHY_SIG_UNKNOWN;
 			atm_info(usbatm, "ADSL line is synchronising
@@ -856,12 +854,9 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 					USB_ENDPOINT_XFER_ISOC;
 				break;
 			}
-	usb_warn(usbatm, "%s entered
-", __func__);
 		}
 
 		*need_heavy_init = 0;
-
 		if (!use_isoc)
 			usb_info(usbatm, "isochronous transfer not supported - using bulk
 ");
