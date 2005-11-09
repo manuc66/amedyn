@@ -57,7 +57,6 @@ install: AME_INIT_install AME_SCRIPTS_install  AME_CONTROL_install
 AME_INIT: init
 	cd init && make
 
-	cd module && make
 AME_CONTROL:
 	cd amcontrol && make
 

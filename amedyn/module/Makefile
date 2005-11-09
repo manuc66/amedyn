@@ -70,10 +70,12 @@ normal: $(xdslusb-files)
 
 debug: $(xdslusb-files)
 	rm -f $(xdslusb-module-objs)
-install: $(xdslusb-module-name) $(xdslusb-debug-module-name) 
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG -Wsign-compare" modules
 #	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) MAKEFILES=$(CONFIG_PATH)/$(CONFIG_NAME) XDSLUSB-MODULE=$(xdslusb-module)dbg EXTRA_CFLAGS="-DDEBUG -DVERBOSE_DEBUG" modules
+	depmod -a
+
+install: $(xdslusb-module-name) 
 	install -d $(MODULE_PATH)
 	install -c $(xdslusb-module-name) $(MODULE_PATH)
 	/sbin/depmod -a
