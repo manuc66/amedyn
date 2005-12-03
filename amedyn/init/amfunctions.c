@@ -726,6 +726,53 @@ do
   else
   {
 /*
+#ifdef DEBUG
+  printf(gettext("Waiting to receive first ATM cells...
+"));
+  time(&first); before = first;
+  do {
+    len = usb_bulk_read(adsl_handle, USB_IN_DATA, buf, sizeof(buf), DATA_TIMEOUT);
+    if (len > 0)  {
+      printf("
+");
+      printf(gettext("ATM cells received:
+"));
+      dump(buf, len, 16);
+      return 0;
+    }
+    if (difftime(time(&last), before) > 1) {
+      printf(".");
+      fflush(stdout);
+      before = last;
+    }
+  unsigned char buf[0x1ff];   /* buffer */
+  } 
+  while (difftime(last, first) < 60);
+  printf("
+");
+#endif
+*/
+
+    printf(gettext("ADSL line is down
+"));
+    return -1;
+  }
+
+  return 0;
+}
+
+int wait_while_line_is_up(usb_dev_handle *adsl_handle, int tmodem)
+  {
+  char buf[0x1ff];   /* buffer */
+  long len;     /* length */
+
+modem_info.modem_status = 0xff;
+do
+  {
+    PDEBUG(gettext("Sending retrieve info...
+"));
+    memset(buf, 0, 0x10);
+    len = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
     if (len < 0)
       printf(gettext("Error retrieving info!
 "));
