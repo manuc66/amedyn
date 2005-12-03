@@ -114,7 +114,6 @@ const char *adsl_modes[] = {
 
 extern struct options command_options;
 extern int check_modem(unsigned int vid, unsigned int pid);
-extern int sync_line(usb_dev_handle *adsl_handle, int tmodem);
 extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
 extern int first_config(usb_dev_handle *adsl_handle, int tmodem);
 extern int sync_line(usb_dev_handle *adsl_handle, int tmodem, int max_wait_line_up);
@@ -294,7 +293,6 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 
   /* connect to ADSL modem */
   if (usb_claim_interface(adsl_handle, 2) < 0)
-  r = sync_line(adsl_handle, tmodem);
   r = load_firmware(adsl_handle, tmodem); 
   r = first_config(adsl_handle, tmodem); 
   if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)

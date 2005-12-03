@@ -566,7 +566,6 @@ int first_config(usb_dev_handle *adsl_handle, int tmodem)
   value = buf[0];
   
   usb_resetep(adsl_handle, 0x81);
-int sync_line(usb_dev_handle *adsl_handle, int tmodem)
 
   // send (0x40)
   len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x40, 0x03, 0x00, NULL, 0);
@@ -575,7 +574,6 @@ int sync_line(usb_dev_handle *adsl_handle, int tmodem)
 
   // read (0xC0)
   for (i = 0xc2; i <= 0xcd; i++) {
-	  MAX_WAIT_LINE_UP);
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, value, 0x03, i, buf, 3);
     usleep(10000);
     if (len < 3)
@@ -660,13 +658,12 @@ do
                         continue;
                     }
               }
-	     && ((difftime (last, first) < MAX_WAIT_LINE_UP)
-		 || MAX_WAIT_LINE_UP == -1));
+		      PDEBUG (gettext ("Modem status = %02x
+"),
 			      modem_info.modem_status);
 		    }
 	      fflush (stdout);
-	 && ((difftime (last, first) < MAX_WAIT_LINE_UP)
-	     || MAX_WAIT_LINE_UP == -1));
+ 
 
 
       printf(".");

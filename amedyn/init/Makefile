@@ -10,7 +10,6 @@ INCLUDES = -I../include
 LDFLAGS = -lusb -lpopt
 LDFLAGS = -lusb 
 ifndef RPM_BUILD_ROOT
-EXE_FILES = amload amioctl amcheckline
 BIN_PATH = /usr/sbin
 EXE_FILES = amload amioctl amcheckline amsyncline
 EXE_FILES_DEBUG = amloaddbg amloaddbgt
@@ -23,7 +22,6 @@ ifdef SIMULATE
 	CFLAGS += -DSIMULATE
 endif
 
-program: amload amioctl amcheckline
 all: program
 
 program: amload amioctl amcheckline amsyncline
@@ -44,6 +42,8 @@ amload: amfunctions.o amload.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
 
 amcheckline: amfunctions.o amcheckline.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
+
 amsyncline: amfunctions.o amsyncline.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
 
