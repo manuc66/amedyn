@@ -33,7 +33,9 @@ program: amload amioctl amcheckline amsyncline
 debug: amloaddbg
 
 debugt: amloaddbgt
-amload: amload.c
+
+
+#
 ## Zyxel 630-11 & Asus AAM6000UG entries
 #
 
@@ -47,7 +49,6 @@ amsyncline: amfunctions.o amsyncline.c
 
 amioctl: amioctl.c 
 	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
-	rm -f $(EXE_FILES) $(EXE_FILES_DEBUG) 
 
 amloaddbg: amload.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) -DDEBUG $^ -o $@
