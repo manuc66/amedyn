@@ -17,11 +17,9 @@
   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
   Author     : Sktt (Aurelio)
-  Author     : Josep Comas <jcomas@gna.es>
-  Creation   : 7/7/2003
+  Creation   : 03/12/2005
 
   Description: Split from amload.c . Commons funtion for amdeyn user space tools.
-  Description: This program inits Zxyel 630-11 & Asus AAM6000UG (USB ADSL Modems with Alcatel chipset).
 
   Log:
 
@@ -60,6 +58,8 @@
   Remove init firmware
   
   03/12/2005 Sktt (Aurelio)
+  Split amload.c. Now all funtions are in amfunctions.c  
+  Split load_firmware.
 
 */
 

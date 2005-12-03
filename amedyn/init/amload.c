@@ -57,7 +57,8 @@
   07/12/2004 Sktt (Aurelio)
   Remove init firmware
 
-  
+  03/12/2005 Sktt (Aurelio)
+  Split amload.c. Now all funtions are in amfunctions.c  
 
 */
 
