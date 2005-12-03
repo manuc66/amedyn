@@ -388,9 +388,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   unsigned char buf[0x1ff];   /* buffer */
   FILE *soft;   /* file handle */
   long len;     /* length */
-  char value;  /* returned byte */
-  int i;  /* counter */
-  time_t first, last, before;  /* to wait */
   int place;    /* initial target address */
   unsigned char bufconf[8];  /* buffer to save config bytes */
 
@@ -523,6 +520,14 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   /* wait until firmware is ready */
   sleep(1);
 
+  return 0;    
+  }
+
+int first_config(usb_dev_handle *adsl_handle, int tmodem)
+  {
+  unsigned char buf[0x1ff];   /* buffer */
+  long len;     /* length */
+  char value;  /* returned byte */
   int i;  /* counter */
 
   /*************/
@@ -554,6 +559,13 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
       return -1;
   }
 
+  return 0;
+  }
+
+int sync_line(usb_dev_handle *adsl_handle, int tmodem)
+  {
+  unsigned char buf[0x1ff];   /* buffer */
+  long len;     /* length */
   time_t first, last, before;  /* to wait */
 
   /* waiting until line is up (a maximum time) */
@@ -566,13 +578,16 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   if (len < 0)
     return -1;
 
+/*At this point the Vendor driver write at CTRLE memory. From offset 0xba to*/
+/*offset 0xc1. We don't change default values from this offset so we can*/
+/*ignore this step.*/
 /*
   for (i = 0xba; i <= 0xc1; i++) {
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, i, &bufconf[i-0xba], 1);
     if (len < 0)
       return -1;
   }
- 
+*/ 
 
 do
   {
@@ -934,6 +949,7 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 ", adsl_dev->config->bmAttributes);
    printf(" MaxPower: 0x%02x
 ", adsl_dev->config->MaxPower);
+#endif
 
   /* connect to ADSL modem */
   if (usb_claim_interface(adsl_handle, 2) < 0)
