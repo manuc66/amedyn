@@ -36,8 +36,6 @@ Before test this new package:
 			
 		- Copy all this firmware files to /lib/firmware/
 
-		- Copy all this firmware files to /lib/firmware/ and
-		    /usr/lib/hotplug/firmware/
 		    You need: Init-usb.bin, fw-usb.bin Fw-usb_A.bin
 		    
 		*** If you use differents names for this files rename its. ***
