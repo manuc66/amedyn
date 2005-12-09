@@ -49,7 +49,6 @@
 #define DRIVER_VERSION	"0.9.2"
 #define DRIVER_DESC	"Zyxel 630-11/13 and Asus AAM600UG ALC USB driver version " DRIVER_VERSION
 
-static const char amedyn_driver_name[] = "amedyn";
 static const char amedyn_driver_name[] = "amedyn2";
 
 /* Alcatel Microelectronics new reference design */
