@@ -39,6 +39,7 @@
 #include <linux/stat.h>
 #include <linux/timer.h>
 #include <linux/types.h>
+#include <linux/usb/ch9.h>
 #include <linux/usb_ch9.h>
 #include <linux/workqueue.h>
 
@@ -66,15 +67,9 @@ static const char amedyn_driver_name[] = "amedyn2";
 #define MIN_POLL_DELAY		5000	/* milliseconds */
 #define MAX_POLL_DELAY		60000	/* milliseconds */
 
-#define DEFAULT_ALTSETTING	1
+//#define RESUBMIT_DELAY		1000	/* milliseconds */
 
 #define DEFAULT_BULK_ALTSETTING	1
-static int altsetting = DEFAULT_ALTSETTING;
-
-module_param(altsetting, int, S_IRUGO | S_IWUSR);
-MODULE_PARM_DESC(altsetting,
-		 "Alternative setting for data interface (default: "
-		 __MODULE_STRING(DEFAULT_ALTSETTING) ")");
 #define DEFAULT_ISOC_ALTSETTING	1 /* This modem don't have iso*/
 static int altsetting = DEFAULT_BULK_ALTSETTING;
 
@@ -85,12 +80,15 @@ static unsigned int altsetting = DEFAULT_BULK_ALTSETTING;
 
 static int linetype = 0;
 
+module_param(linetype, uint, S_IRUGO | S_IWUSR);
+module_param(linetype, uint, 0444);
+module_param(altsetting, int, S_IRUGO | S_IWUSR);
+MODULE_PARM_DESC(linetype, "Set phone line type code");
 
 module_param(altsetting, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(altsetting,
     		"Alternative setting for data interface (bulk_default: "
-#define ENDPOINT_DATA_IN		0x87
-#define ENDPOINT_DATA_OUT		0x07
+	         __MODULE_STRING(DEFAULT_BULK_ALTSETTING) ")");
 
 #define UDSL_IOCTL_LINE_UP		1
 #define UDSL_IOCTL_LINE_DOWN		2
@@ -103,6 +101,7 @@ MODULE_PARM_DESC(altsetting,
 #define AMEDYN_USB_IN_INFO  0x81    // IN endpoint address, read modem status /
 #define ENDPOINT_FIRMWARE_IN  0x85    // IN endpoint address, read config /
 #define ENDPOINT_FIRMWARE_IN  0x85  /* IN endpoint address, read config */
+
 
 #define hex2int(c) ( (c >= '0') && (c <= '9') ? (c - '0') : ((c & 0xf) + 9) )
 
@@ -341,7 +340,11 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 	usb_clear_halt(usb_dev, usb_rcvbulkpipe(usb_dev, AMEDYN_USB_IN_INFO));
 
 	ret = usb_control_msg(usb_dev, usb_sndctrlpipe(usb_dev, 0),
-	
+			      0x40, 0x40, 0x03, 0x00,
+			      NULL, 0x00, CTRL_TIMEOUT);
+	if (ret < 0) {
+		dbg("amedyn_upload_firmware: PostInit fail at local urb 2: %d
+", ret);
 		goto out_free; }
 
 	for (i = 0xc2; i <= 0xcd; i++) {
@@ -352,8 +355,7 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 			dbg("amedyn_upload_firmware: PostInit fail at local urb 3: %d
 ", ret);
 			goto out_free; }
-static int amedyn_find_firmware(struct usb_interface *intf, char* phase,
-				const struct firmware **fw_p)
+    		msleep(100);
    	}
 
 	/* success */
@@ -361,20 +363,14 @@ static int amedyn_find_firmware(struct usb_interface *intf, char* phase,
 ", __func__);
 
 	/* Delay to allow firmware to start up. We can do this here
-	dev_dbg(dev, "%s: looking for %s
-", __func__, phase);
 	   because we're in our own kernel thread anyway. */
 	msleep_interruptible(1000);
 
-		dev_warn(dev, "no stage %s firmware found
-", phase);
 	if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, instance->altsetting)) < 0) {
 		usb_err(usbatm, "%s: setting interface to %d failed (%d)!
 ", __func__, instance->altsetting, ret);
 		goto out_free;
 	}
-	dev_info(dev, "found firmware %s
-", phase);
 	ret = 0;
 
 out_free:
@@ -386,11 +382,9 @@ out:
 static int amedyn_find_firmware(struct usbatm_data *usbatm, struct usb_interface *intf,
 				char* phase, const struct firmware **fw_p)
 {
-	if ((ret = amedyn_find_firmware(intf, instance->initfirmfile, &fw1)) < 0)
-			return ret;
+	struct device *dev = &intf->dev;
 	char buf[16];
 
-	if ((ret = amedyn_find_firmware(intf, instance->firmfile, &fw2)) < 0) {
 	sprintf(buf, "%s", phase);
 	usb_dbg(usbatm, "%s: looking for %s
 ", __func__, phase);
@@ -398,7 +392,7 @@ static int amedyn_find_firmware(struct usbatm_data *usbatm, struct usb_interface
 	if (request_firmware(fw_p, buf, dev)) {
 		usb_dbg(usbatm, "no stage %s firmware found
 ", phase);
-	ret = amedyn_upload_firmware(instance, fw1, fw2);
+		return -ENOENT;
 	}
 
 	usb_info(usbatm, "found firmware %s
@@ -557,15 +551,11 @@ static int amedyn_start_synchro(struct amedyn_instance_data *instance)
 	ret = usb_control_msg(usb_dev, usb_rcvctrlpipe(usb_dev, 0),
 			      0x0e, 0xc0, 0x03, 0x00,
 			      buf, 0x0c, CTRL_TIMEOUT);
-		if (instance->poll_delay < MAX_POLL_DELAY)
-			instance->poll_delay *= 2;
 	if (ret < 0) {
 		atm_warn(usbatm, "%s failed on local urb 8: %d
 ", __func__, ret);
 static void amedyn_check_status(struct amedyn_instance_data *instance)
 		return ret;
-	if (instance->poll_delay > MIN_POLL_DELAY)
-		instance->poll_delay /= 2;
 	}
 }
 
@@ -670,12 +660,6 @@ static void amedyn_check_status(struct work_struct *work)
 			atm_info(usbatm, "ADSL line is blocked?
 ");
 			break;
-	if ((ret = usb_set_interface(usb_dev, 1, altsetting)) < 0) {
-		atm_dbg(usbatm, "%s: usb_set_interface returned %d!
-", __func__, ret);
-		return ret;
-	}
-
 
 		case 0x10:
 			atm_dev->signal = ATM_PHY_SIG_UNKNOWN;
@@ -747,13 +731,10 @@ static void amedyn_atm_stop(struct usbatm_data *usbatm, struct atm_dev *atm_dev)
 	struct amedyn_instance_data *instance = usbatm->driver_data;
 	
 	mb(); // Delete?
-			 const struct usb_device_id *id,
-			 int *need_heavy_init)
 	atm_dbg(usbatm, "%s entered
 ", __func__);
 
 	del_timer_sync(&instance->status_checker.timer);
-	struct usb_interface *cur_intf;
 
 	mb(); /* Delete? */
 
@@ -763,10 +744,14 @@ static void amedyn_atm_stop(struct usbatm_data *usbatm, struct atm_dev *atm_dev)
 
 /**********
 **  USB  **
+**********/
 
 static struct usb_device_id amedyn_usb_ids[] = {
-		usb_dbg(usbatm, "%s: wrong device class %d
-", __func__, usb_dev->descriptor.bDeviceClass);
+	{USB_DEVICE(AME_VENDORID2, AME_PRODUCTID2)},
+	{USB_DEVICE(AME_VENDORID3, AME_PRODUCTID3)},
+	{USB_DEVICE(AME_VENDORID4, AME_PRODUCTID4)},
+	{}
+};
 
 MODULE_DEVICE_TABLE(usb, amedyn_usb_ids);
 
@@ -780,8 +765,6 @@ static struct usb_driver amedyn_usb_driver = {
 };
 
 static void amedyn_release_interfaces(struct usb_device *usb_dev, int num_interfaces) {
-				usb_dbg(usbatm, "%s: failed to claim interface %d (%d)
-", __func__, i, ret);
 	struct usb_interface *cur_intf;
 	int i;
 
@@ -792,8 +775,6 @@ static void amedyn_release_interfaces(struct usb_device *usb_dev, int num_interf
 		}
 }
 
-		usb_dbg(usbatm, "%s: no memory for instance data!
-", __func__);
 static int amedyn_bind(struct usbatm_data *usbatm,
 			 struct usb_interface *intf,
 			 const struct usb_device_id *id)
@@ -803,13 +784,64 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	struct amedyn_instance_data *instance;
 	int ifnum = intf->altsetting->desc.bInterfaceNumber;
 	int use_isoc; /* This modem don't have iso*/
+	int num_interfaces = usb_dev->actconfig->desc.bNumInterfaces;
+	int i, ret;
+
+	usb_dbg(usbatm, "%s entered
+", __func__);
+
+	/* sanity checks */
+
+	if (usb_dev->descriptor.bDeviceClass != USB_CLASS_VENDOR_SPEC) {
+		usb_err(usbatm, "%s: wrong device class %d
+", __func__, usb_dev->descriptor.bDeviceClass);
+		return -ENODEV;
+	}
+
+	if (!(data_intf = usb_ifnum_to_if(usb_dev, INTERFACE_DATA))) {
+	instance = kmalloc(sizeof(*instance), GFP_KERNEL);
+		usb_err(usbatm, "%s: data interface not found!
+", __func__);
+		return -ENODEV;
+	}
+
+	/* claim all interfaces */
+
+	for (i=0; i < num_interfaces; i++) {
+	memset(instance, 0, sizeof(struct amedyn_instance_data));
+
+		cur_intf = usb_ifnum_to_if(usb_dev, i);
+
+		if ((i != ifnum) && cur_intf) {
+			ret = usb_driver_claim_interface(&amedyn_usb_driver, cur_intf, usbatm);
+
+			if (ret < 0) {
+				usb_err(usbatm, "%s: failed to claim interface %2d (%d)!
+", __func__, i, ret);
+				amedyn_release_interfaces(usb_dev, i);
+				return ret;
+			}
+		}
+	}
+
+	instance = kzalloc(sizeof(*instance), GFP_KERNEL);
+
+	if (!instance) {
+		usb_err(usbatm, "%s: no memory for instance data!
+", __func__);
+		ret = -ENOMEM;
+		goto fail_release;
+	}
+
+	instance->usbatm = usbatm;
+	/* altsetting and enable_isoc may change at any moment, so take a snapshot */
+
 	use_isoc = 0;
 	/* altsetting may change at any moment, so take a snapshot */
 	instance->altsetting = altsetting;
 	usbatm->flags |= use_isoc ? UDSL_USE_ISOC : 0;
 
 	if (instance->altsetting)
-	instance->last_status = 0xff;
 		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, instance->altsetting)) < 0) {
 			usb_err(usbatm, "%s: setting interface to %2d failed (%d)!
 ", __func__, instance->altsetting, ret);
@@ -839,20 +871,16 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 			}
 		}
 
-		*need_heavy_init = 0;
 		if (!use_isoc)
 			usb_info(usbatm, "isochronous transfer not supported - using bulk
 ");
-		*need_heavy_init = 1;
-	
+	}
 
 	if (!use_isoc && !instance->altsetting)
-	usb_dbg(usbatm, "%s: firmware %s loaded
-", __func__, need_heavy_init ? "not" : "already");
 
 	INIT_WORK(&instance->status_checker, (void *)amedyn_check_status, instance);
-	if (*need_heavy_init)
-		if ((ret = usb_reset_device(usb_dev)) < 0)
+	if (!instance->altsetting) {
+		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, DEFAULT_BULK_ALTSETTING)) < 0) {
 			usb_err(usbatm, "%s: setting interface to %2d failed (%d)!
 ", __func__, DEFAULT_BULK_ALTSETTING, ret);
 			}
@@ -873,10 +901,8 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	instance->poll_delay = MIN_POLL_DELAY;
 
 /* ------------------------------------------------------------------- */
-	
 	if ( linetype == ANALOG ||  linetype == ISDN)
 		instance->linetype = linetype;
-	
 	else {
 		dbg("using default line type - 0x15 (analog)");
 		instance->linetype = ANALOG;
@@ -895,8 +921,7 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	.owner		= THIS_MODULE,
 	    instance->datamax = 0x1f2;
 	    instance->firmfile = "Fw-usb_A.bin"; }
-	.in		= ENDPOINT_DATA_IN,
-	.out		= ENDPOINT_DATA_OUT
+/* ------------------------------------------------------------------- */
 	
 	/* check whether the modem already seems to be alive */
 	ret = usb_bulk_msg(usb_dev, usb_rcvbulkpipe(usb_dev, AMEDYN_USB_IN_INFO),
