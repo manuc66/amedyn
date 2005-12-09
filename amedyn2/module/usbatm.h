@@ -42,7 +42,6 @@
 #define VERBOSE_DEBUG
 */
 #if !defined (DEBUG) && (defined (CONFIG_USB_DEBUG) || defined (VERBOSE_DEBUG))
-#if !defined (DEBUG) && defined (CONFIG_USB_DEBUG)
 #	define DEBUG
 #endif
 
@@ -81,14 +80,22 @@
 #ifdef DEBUG
 #define atm_dbg(instance, format, arg...)	\
 	atm_printk(KERN_DEBUG, instance , format , ## arg)
+#define atm_rldbg(instance, format, arg...)	\
+	if (printk_ratelimit())				\
 		atm_printk(KERN_DEBUG, instance , format , ## arg)
 #else
 #define atm_dbg(instance, format, arg...)	\
 	do {} while (0)
+#define atm_rldbg(instance, format, arg...)	\
 	do {} while (0)
 #endif
 
 
+/* flags, set by mini-driver in bind() */
+
+#define UDSL_SKIP_HEAVY_INIT	(1<<0)
+#define UDSL_USE_ISOC		(1<<1)
+#define UDSL_IGNORE_EILSEQ	(1<<2)
 
 
 /* mini driver */
@@ -105,13 +112,8 @@ struct usbatm_data;
 
 struct usbatm_driver {
 	const char *driver_name;
-	/*
-	*  init device ... can sleep, or cause probe() failure.  Drivers with a heavy_init
-	*  method can avoid having it called by setting need_heavy_init to zero.
-	*/
 
 	/* init device ... can sleep, or cause probe() failure */
-		     const struct usb_device_id *id, int *need_heavy_init);
         int (*bind) (struct usbatm_data *, struct usb_interface *,
 		     const struct usb_device_id *id);
 
@@ -126,8 +128,8 @@ struct usbatm_driver {
 
 	/* cleanup ATM device ... can sleep, but can't fail */
 	void (*atm_stop) (struct usbatm_data *, struct atm_dev *);
-        int in;		/* rx endpoint */
-        int out;	/* tx endpoint */
+
+        int bulk_in;	/* bulk rx endpoint */
         int isoc_in;	/* isochronous rx endpoint */
         int bulk_out;	/* bulk tx endpoint */
 
@@ -192,7 +194,13 @@ struct usbatm_data {
 
 	struct usbatm_channel rx_channel;
 	struct usbatm_channel tx_channel;
-	struct sk_buff *current_skb;			/* being emptied */
+
+	struct sk_buff_head sndqueue;
+	struct sk_buff *current_skb;	/* being emptied */
+
+	struct usbatm_vcc_data *cached_vcc;
+	int cached_vci;
+	short cached_vpi;
 
 	unsigned char *cell_buf;	/* holds partial rx cell */
 	unsigned int buf_usage;
