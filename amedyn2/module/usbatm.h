@@ -25,8 +25,15 @@
 #define	_USBATM_H_
 
 #include <asm/semaphore.h>
+#include <linux/atm.h>
+#include <linux/atmdev.h>
+#include <linux/completion.h>
 #include <linux/config.h>
 #include <linux/device.h>
+#include <linux/kernel.h>
+#include <linux/kref.h>
+#include <linux/list.h>
+#include <linux/stringify.h>
 #include <linux/usb.h>
 #include <linux/mutex.h>
 
@@ -37,16 +44,6 @@
 #if !defined (DEBUG) && (defined (CONFIG_USB_DEBUG) || defined (VERBOSE_DEBUG))
 #if !defined (DEBUG) && defined (CONFIG_USB_DEBUG)
 #	define DEBUG
-#include <asm/semaphore.h>
-#include <linux/atm.h>
-#include <linux/atmdev.h>
-#include <linux/completion.h>
-#include <linux/device.h>
-#include <linux/kref.h>
-#include <linux/list.h>
-#include <linux/stringify.h>
-#include <linux/usb.h>
-
 #endif
 
 
@@ -60,9 +57,12 @@
 	dev_err(&(instance)->usb_intf->dev , format , ## arg)
 #define usb_info(instance, format, arg...)	\
 	dev_info(&(instance)->usb_intf->dev , format , ## arg)
+#define usb_warn(instance, format, arg...)	\
+	dev_warn(&(instance)->usb_intf->dev , format , ## arg)
+#ifdef DEBUG
 #define usb_dbg(instance, format, arg...)	\
         dev_printk(KERN_DEBUG , &(instance)->usb_intf->dev , format , ## arg)
-	dev_dbg(&(instance)->usb_intf->dev , format , ## arg)
+#else
 #define usb_dbg(instance, format, arg...)	\
 	do {} while (0)
 #endif
