@@ -40,7 +40,6 @@ uninstall_xusbatm:
 
 uninstall_old: uninstall_amedyn uninstall_usb_atm
 
-keep_xusbatm: uninstall_old uninstall_amedyn2 uninstall_usbatm
 uninstall: uninstall_old uninstall_amedyn2 uninstall_usbatm
 keep_xusbatm: uninstall_old uninstall_amedyn2
 
