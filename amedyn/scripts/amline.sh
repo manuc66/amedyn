@@ -4,16 +4,12 @@
 
 
 if [ $PROTOCOL_MODE -ge 1 ] && [ $PROTOCOL_MODE -le 4 ]; then
-if [ $DRIVER_MODE -ge 1 ] && [ $DRIVER_MODE -le 4 ]; then
-    if [ $DRIVER_MODE -eq 1 ]; then
+    if [ $PROTOCOL_MODE -eq 1 ]; then
 	amnet=amnet
     else
 	amnet=amnet${PROTOCOL_MODE}
-	amnet=amnet${DRIVER_MODE}
     fi
 fi
-
-echo $amnet
 
 while [ 1 ]; do
 # check line status
