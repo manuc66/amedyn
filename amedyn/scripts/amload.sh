@@ -8,13 +8,10 @@ TEXTDOMAIN=`basename $0`
 
 . /etc/amedyn
 
+FLOAD_NAME=amload
 
 echo $">>> Inits Zyxel 630-11 & Asus AAM6000UG <<<"
 echo
-FLOAD_NAME=amload
-MODULE_NAME=amedyn
-MODULE_NAMEDBG=amedyndbg
-
 
 # Load usb host controller if is not loaded
 KERNEL_VERSION=`uname -r | cut -d'.' -f1-2`
@@ -47,14 +44,6 @@ if [ "$mt_old" = "" ] && [ "$mt_new" = "" ]; then
   echo $">>> Mounting USB file system..."
   mount -t usbfs usbfs /proc/bus/usb || mount -t usbdevfs none /proc/bus/usb
   mount -t usbfs usbfs /proc/bus/usb || mount -t usbdevfs none /proc/bus/usb || exit 1
-# Remove module if it is loaded, we only have 1 interface, this is need to load firmware
-driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|$MODULE_NAMEDBG$"`
-if [ "$driver" != "" ]; then
-  echo $">>> Removing amedyn driver..."
-  rmmod $driver || exit 1
-  echo
-  sleep 1s
-fi
   echo
 fi
 
@@ -66,32 +55,6 @@ echo $">>> Loading firmware..."
 $FLOAD_NAME || exit 1
 
     amload -fcs || exit 1
-# Load Zyxel 630-11 & Asus AAM6000UG module
-echo $">>> Loading driver..."
-
-if [ "$KERNEL_VERSION" != "2.4" ]; then
-  crc32=`lsmod | cut -d ' ' -f1 | grep -E "^crc32$"`
-  if [ "$crc32" = "" ]; then
-    modprobe crc32
-  fi
-fi
-
-case "$DRIVER_MODE" in
-  1)
-     # normal mode:
-     echo $"Launching driver in normal mode...";
-     MODULE_RUN=$MODULE_NAME
-     ;;
-
-  2)
-     # debug mode:
-     echo $"Launching driver in debug mode...";
-     MODULE_RUN=$MODULE_NAMEDBG
-     ;;
-
-esac
-modprobe $MODULE_RUN || exit 1
-sleep 3s 
     amload -fcs --linetype $LINE_TYPE || exit 1
     amload $LOADPRMS || exit 1
 #sleep 5s
