@@ -29,6 +29,8 @@
   03/12/2005 Sktt (Aurelio)
   Initial release
 
+  11/12/2005 Emmanuel Counasse
+  Use now resync_line function to resync the line
 */
 
 
@@ -84,7 +86,6 @@ extern int check_modem(unsigned int vid, unsigned int pid);
 extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
 extern int first_config(usb_dev_handle *adsl_handle, int tmodem);
 extern int resync_line(usb_dev_handle *adsl_handle, int tmodem);
-extern int sync_line(usb_dev_handle *adsl_handle, int tmodem, int max_wait_line_up);
 extern int load_firmware(usb_dev_handle *adsl_handle, int tmodem);
 
 int main(int argc, char *argv[])
@@ -239,7 +240,6 @@ int main(int argc, char *argv[])
 "), adsl_handle->interface);
 
   r = resync_line(adsl_handle, tmodem);
-  r = sync_line(adsl_handle, tmodem, -1);
 
   PDEBUG(gettext("Releasing interface...
 "));
