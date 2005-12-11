@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type"
  content="text/html; charset=iso-8859-1">
   <meta http-equiv="Content-Style-Type" content="text/css">
-  <title>English Install Instruction</title>
+  <title>French Install Instruction</title>
   <style type="text/css">
 <!--
 
@@ -34,14 +34,15 @@ border-top-width: 1px; border-right-width: 1px; border-bottom-width:
 </head>
 <body style="color: rgb(0, 0, 0); background-color: rgb(229, 229, 229);"
  link="#006699" vlink="#5493b4">
-1) Install following packages : <br>
+&nbsp;
+1) Installer les paquetages suivants : <br>
 <span class="genmed"></span><span class="postbody"><br>
 </span>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote"><br>
@@ -61,15 +62,15 @@ popt <br>
 </table>
 <span class="postbody"><br>
 </span><br>
-2) Copy the amedyn-200x-xx-xx-src.tgz to /usr.
-Type the following command in a shell : <br>
+2) Copier amedyn-200x-xx-xx-src.tgz vers /usr.
+Et taper les commandes suivantes dans un terminal : <br>
 <span class="postbody"><br>
 </span>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote"><br>
@@ -88,26 +89,29 @@ make<br>
   </tbody>
 </table>
 <br>
-that is unpack, change into the unpacked dir, and compile by typing
-make<br>
+d&eacute;compaction, change de r&eacute;pertoire vers le
+r&eacute;pertoire de d&eacute;compaction, complile en tapant make<br>
 <span class="postbody"><br>
-</span>3) Setting up your protocol: <br>
+</span>3) Configuration du protocol: <br>
 <br>
-for pppoe : <a
+&nbsp;
+pour pppoe : <a
  href="http://www.csn.ul.ie/%7Ecaolan/TechTexts/ZyXEL-630-11-HowTo.html"
  target="_blank">http://www.csn.ul.ie/~caolan/TechTexts/ZyXEL-630-11-HowTo.html</a>
 (point 4, 6, 7) <br>
 <br>
-for pppoa only : <br>
+&nbsp;
+pour pppoa seulement : <br>
 <br>
-edit the /etc/amedyn file as the following...<br>
+&nbsp;
+editer le fichier /etc/amedyn comme ci-desous...<br>
 <span class="postbody"><br>
 </span>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td>Quote:</td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote"># Protocol <br>
@@ -130,15 +134,16 @@ GATEWAY= <br>
   </tbody>
 </table>
 <br>
-and replace the VPI and VCI with the ones your ISP told you<br>
+et remplacer les valeur VPI et VCI avec celle de votre fournisseur
+d'access internet (par example VPI=8 et VCI= 35) .<br>
 <br>
-4) edit the /etc/ppp/pap-secrets <br>
+4) Editer le fichier /etc/ppp/pap-secrets <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span><span class="genmed"></span></td>
     </tr>
     <tr>
       <td class="quote"><br>
@@ -150,19 +155,23 @@ username&lt;tab&gt;*&lt;tab&gt;PaSsWoRd&lt;tab&gt;*<br>
     </tr>
   </tbody>
 </table>
-Replace the &lt;tab&gt; with a tabulation key.<br>
-Replace with your username/password.
+&nbsp;
+Remplacer les "&lt;tab&gt;" par la touche tabulation.<br>
+&nbsp;
+Remplacer les valeur "username" et "password" respectivement par votre
+identifiant de connection internet et le mot de passe&nbsp;
+associ&eacute;.
 <br>
 <br>
-Then make a copy of this file to : /etc/ppp/chap-secrets<br>
+Ensuite faite une copie de ce fichier vers : /etc/ppp/chap-secrets<br>
 <br>
-5) edit /etc/ppp/options and write: <br>
+5) Editer le fichier /etc/ppp/options et placer le contenu suivant : <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">lock <br>
@@ -192,25 +201,29 @@ VPI.VCI <br>
   </tbody>
 </table>
 <br>
-replace the username with your username and VPI.VCI with the ones your
-ISP told you (e.g. 8.35) and VERSION with your pppd's version (e.g.
-2.4.1 or 2.4.2)
+&nbsp; Remplacer les valeurs "username" comme dans le point
+pr&eacute;c&eacute;dent, le VCI.VPI (par example 8.35) ainssi que
+"VERSION" dans la ligne "plugin usr/lib/pppd/VERSION/pppoatm.so" par la
+version de votre d&eacute;mon pppd (par example 2.4.1 ou 2.4.2)
 <br>
 <br>
-6) Now to connect type amstart.sh and you should see the
-driver
+6) Maintenant pour &eacute;tablir la connection taper amstart.sh et le
+pilote&nbsp; effectuera le soperation suivantes : envoie du mircocode
+au modem accompagn&eacute; de la proc&eacute;dure de synchronisation,
+initialisation, et ensuite configuration.taper ifocnfig affin de
+v&eacute;rifier qu'une interface ppp0 est pr&eacute;sente. <br>
 <br>
-loaded, and inited, then type ifconfig to verify that you have the ppp0
-interface. <br>
-<br>
-If you're connected you sould be able to ping an ip, try : <br>
+&nbsp;
+Si la connection est &eacute;tablie, vous devriez &ecirc;tre en mesure
+d'effectuer un 'ping' sur une adresse IP, pour se faire essayez la
+commande suivante : <br>
 <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">ping 216.239.59.147</td>
@@ -218,15 +231,17 @@ If you're connected you sould be able to ping an ip, try : <br>
   </tbody>
 </table>
 <br>
-if it worked, seems like your conection works, now test DNS solving by
-trying to ping a web
-adress (if it fails jump to step 7)<br>
+&nbsp;
+Si cela fonctionne, la connection &agrave; internet est &eacute;tablie.
+Maintenant tester la r&eacute;solution de nom de domaine en effectuant
+un 'ping' sur une adresse web (si cela ne fonctionne pas passez
+&agrave; l'&eacute;tape 7)<br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">ping <a href="http://www.google.com"
@@ -236,18 +251,14 @@ adress (if it fails jump to step 7)<br>
 </table>
 <br>
 <br>
-if the host is unreachable then edit /etc/resolve.conf and
-/etc/ppp/resolve(if you want you can replace this file and put a link
-to /etc/resolve.conf ,
-to do that type as a root <br>
-ln -sf /etc/resolve.conf /etc/ppp/resolve )
-.conf and add something like this : <br>
+&nbsp;Si l'hote n'est aps joignable, editer le fichier /etc/resolv.conf
+et /etc/ppp/resolv.conf&nbsp; en ajoutant les lignes suivantes<br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">nameserver first_dns <br>
@@ -256,28 +267,33 @@ nameserver second_dns</td>
   </tbody>
 </table>
 <br>
-you should put your ISP's dns here in the same order by replacing the
-first_dns and second_dns with their ips, if you don't know them, just
-look for them on www.google.com :)<br>
-To stop connection, run amstop.sh, to connect again then run amstart.sh
-(if it will not
-work then run amstop.sh, unplug the modem for 10 seconds and then run
-amstart.sh)<br>
+&nbsp; Placer les adresses IP de votre fournisseur d'access internet en
+rempla&ccedil;ant "first_dns" et "second_dns", si vous ne les
+connaissez pas adressez vous &agrave; votre fournisseur ou realiser une
+recherche sur le la toile.<br>
 <br>
-7) If step 6 fails but all seems ok and the modem still doesn't work
-try to edit
-xdslusb
-(there are 2 files, one is for the kernel 2.4 and the other one is for
-the 2.6, they are named according to the kernel's they are for :) )
-source files<br>
-in the directory /usr/amedyn/init and use change this :<br>
+&nbsp; Pour stopper la connection, taper amstop.sh, pour vous connecter
+&agrave; nouveau (si cela ne fonctionne pas, d&eacute;brancher votre
+modem attendez une dizaines de secondes et lancer amstart.sh) <br>
+<br>
+&nbsp; (Si vous le d&eacute;sirez vous pouvez
+r&eacute;alis&eacute; un lien de votre fichier /etc/resolv.conf vers
+/etc/, pour ce faire t&eacute;per la comande suivant avec les
+permission root : ln -sf /etc/resolv.conf /etc/ppp/resolv.conf)<br>
+<br>
+7) Si l'&eacute;tape 6 n'a pas fonctionn&eacute; mais que tout semble
+correct, je vous sug&eacute;re d'essayer d'&eacute;diter le fichier
+source xdslusb (il y a 2 fichiers, un pourt le noyau 2.4 et un pour le
+2.6, il sont nom&eacute; en cons&eacute;quence) dans le
+r&eacute;pertoire /usr/amedyn/module/ en changeant les valeur des
+lignes suivantes :<br>
 <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">#define UDSL_DEFAULT_RCV_BUF_SIZE 64<br>
@@ -286,15 +302,15 @@ in the directory /usr/amedyn/init and use change this :<br>
   </tbody>
 </table>
 <br>
-8) if you want your computer to start the connection at boot type in
-the /usr/amedyn
-dir as root : <br>
+8) Affin que votre ordinateur lance automatiquement la conenction
+&agrave; chaque d&eacute;marage, taper dans le repertoire /usr/amedyn
+avec les privil&eacute;ges root la commande suivante : <br>
 <br>
 <table align="center" border="0" cellpadding="3" cellspacing="1"
  width="90%">
   <tbody>
     <tr>
-      <td><span class="genmed"><b>Quote:</b></span></td>
+      <td><span class="genmed"><b>Code:</b></span></td>
     </tr>
     <tr>
       <td class="quote">make add_service </td>
@@ -302,18 +318,20 @@ dir as root : <br>
   </tbody>
 </table>
 <br>
-9) for more help please got to forum on <a
- href="http://sourceforge.net/forum/?group_id=84006">sourcefoge's zyxel
-630-11 project</a>
-page and also have look at /var/log/message and /var/log/syslog to try
-to
-detect some error (please don't post these files on the forum!!!)<br>
+9) besoin d'aide ? veuillez vous rendre sur le forum du pilote (<a
+ href="http://sourceforge.net/forum/?group_id=84006">forum du projet
+zyxel</a> ou <a
+ href="http://sourceforge.net/forum/forum.php?forum_id=294814">forum du
+projet asus</a> cela n'a pas d'importance) et regarder &eacute;galement
+dans les fichier /var/log/message et /var/log/syslog pour essayer de
+d&eacute;tecter une erreur. SVP ne pas copier le contenu de ces fichier
+sur le forum !<br>
 <br>
 <br>
 <br>
-Credits for this doc : <br>
-All documents posted before for inspiration, <a
- href="mailto:manuc66%20%5Bat%5D%20yahoo%20.%20fr">manuc66</a> and <a
+Credits pour cette documentation : <br>
+L'ensemble des document pr&eacute;c&eacute;dent, <a
+ href="mailto:manuc66%20%5Bat%5D%20yahoo%20.%20fr">manuc66</a> et <a
  href="mailto:max87%20%5Bat%5D%20gmx%20.%20net">max4ever</a>
 </body>
 </html>
