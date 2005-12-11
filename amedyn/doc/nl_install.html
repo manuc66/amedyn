@@ -1,0 +1,447 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr">
+<head>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Nederlandse Installatie Instrukties</title>
+  <style type="text/css">
+<!--
+
+body { background-color: #E5E5E5;
+}
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover { text-decoration: underline; color : #DD6900; }
+hr { height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
+/* This is the border line &amp; background colour round the entire
+page */
+.bodyline { background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+/* This is the outline round the main forum tables */
+.forumline { background-color: #FFFFFF; border: 2px #006699 solid; }
+/* Main table cell colours and backgrounds */
+td.row1 { background-color: #EFEFEF; }
+td.row2 { background-color: #DEE3E7; }
+td.row3 { background-color: #D1D7DC; }
+/* This is for the table cell above the Topics, Post &amp; Last posts
+on the index.php page By default this is the fading out gradiated
+silver background. However, you could replace this with a bitmap
+specific for each forum
+*/
+td.rowpic { background-color: #FFFFFF; background-image:
+url(templates/subSilver/images/cellpic2.jpg); background-repeat:
+repeat-y;
+}
+/* Header cells - the blue and silver gradient backgrounds */
+th { color: #FFA34F; font-size: 11px; font-weight : bold;
+background-color: #006699; height: 25px; background-image:
+url(templates/subSilver/images/cellpic3.gif);
+}
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+background-image: url(templates/subSilver/images/cellpic1.gif);
+background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height:
+28px;
+}
+/* Setting additional nice inner borders for the main table cells. The
+names indicate which sides the border will be on. Don't worry if you
+don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom { height: 29px; border-width: 0px 0px
+0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR
+{ font-weight: bold; border: #FFFFFF; border-style: solid; height:
+28px;
+}
+td.row3Right,td.spaceRow { background-color: #D1D7DC; border: #FFFFFF;
+border-style: solid;
+}
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px;
+}
+th.thSides,td.catSides,td.spaceRow { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom { border-width: 0px 1px 1px 1px; }
+th.thTop { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+/* The largest text used in the index page title and toptic title etc.
+*/
+.maintitle { font-weight: bold; font-size: 22px; font-family:
+"Trebuchet MS",Verdana, Arial, Helvetica, sans-serif; text-decoration:
+none; line-height : 120%; color : #000000;
+}
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover { color: #DD6900;
+text-decoration: underline; }
+/* The register, login, search etc links at the top of the page */
+.mainmenu { font-size : 11px; color : #000000 }
+a.mainmenu { text-decoration: none; color : #006699; }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+/* Forum category titles */
+.cattitle { font-weight: bold; font-size: 12px ; letter-spacing: 1px;
+color : #006699}
+a.cattitle { text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink { font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink { text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation
+bar when in a forum */
+.nav { font-weight: bold; font-size: 11px; color : #000000;}
+a.nav { text-decoration: none; color : #006699; }
+a.nav:hover { text-decoration: underline; }
+/* titles for the topics: could specify viewed link colour too */
+topictitle,h1,h2 { font-weight: bold; font-size: 11px; color :
+#000000; }
+a.topictitle:link { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover { text-decoration: underline; color : #DD6900; }
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name { font-size : 11px; color : #000000;}
+/* Location, number of posts, post date etc */
+.postdetails { font-size : 10px; color : #000000; }
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px; line-height: 18px}
+a.postlink:link { text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+/* Quote &amp; Code blocks */
+.code { font-family: Courier, 'Courier New', sans-serif; font-size:
+11px; color: #006600; background-color: #FAFAFA; border: #D1D7DC;
+border-style: solid; border-left-width: 1px; border-top-width: 1px;
+border-right-width: 1px; border-bottom-width: 1px
+}
+.quote { font-family: Verdana, Arial, Helvetica, sans-serif; font-size:
+11px; color: #444444; line-height: 125%; background-color: #FAFAFA;
+border: #D1D7DC; border-style: solid; border-left-width: 1px;
+border-top-width: 1px; border-right-width: 1px; border-bottom-width:
+1px
+}
+/* Copyright and bottom info */
+.copyright { font-size: 10px; font-family: Verdana, Arial, Helvetica,
+sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright { color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+/* Form elements */
+input,textarea, select { color : #000000; font: normal 11px Verdana,
+Arial, Helvetica, sans-serif; border-color : #000000;
+}
+/* The text input fields background colour */
+input.post, textarea.post, select { background-color : #FFFFFF;
+}
+input { text-indent : 2px; }
+/* The buttons used for bbCode styling in message post */
+input.button { background-color : #EFEFEF; color : #000000; font-size:
+11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+/* The main submit button option */
+input.mainoption { background-color : #FAFAFA; font-weight : bold;
+}
+/* None-bold submit button */
+input.liteoption { background-color : #FAFAFA; font-weight : normal;
+}
+
+-->
+  </style>
+</head>
+<body style="color: rgb(0, 0, 0); background-color: rgb(229, 229, 229);"
+ link="#006699" vlink="#5493b4">
+&nbsp;
+1) Installeer de volgende paketten : <br>
+<span class="genmed"></span><span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+kernel-source <br>
+ppp <br>
+libpcap0 (also called libpcap ;) ) <br>
+ppp-pppoatm (ALS je pppoatm gebruikt) <br>
+rp-pppoe (ALS je pppoe gebruikt)<br>
+libusb <br>
+libusb-dev <br>
+linux-atm <br>
+popt <br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<span class="postbody"><br>
+</span><br>
+2) Kopieer de amedyn-200x-xx-xx-src.tgz naar /usr.
+Tik de volgende kommando's in een konsole : <br>
+<span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+su <br>
+      <br>
+cd /usr/ <br>
+      <br>
+tar xzvf amedyn-200x-xx-xx-src.tgz <br>
+      <br>
+cd /usr/amedyn <br>
+      <br>
+make<br>
+&nbsp; <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+dus uitpakken , veranderen naar de folder waarin je de bestanden hebt
+uitgepakt, en compileren door make in te tikken.<br>
+<span class="postbody"><br>
+</span>3) Protocol instellen <br>
+<br>
+voor pppoe : <a
+ href="http://www.csn.ul.ie/%7Ecaolan/TechTexts/ZyXEL-630-11-HowTo.html"
+ target="_blank">http://www.csn.ul.ie/~caolan/TechTexts/ZyXEL-630-11-HowTo.html</a>
+(point 4, 6, 7) <br>
+<br>
+voor pppoa : <br>
+<br>
+bewerk het bestand /etc/amedyn als volgt...<br>
+<span class="postbody"><br>
+</span>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td>Quote:</td>
+    </tr>
+    <tr>
+      <td class="quote"># Protocol <br>
+PROTOCOL_MODE=2 # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), <br>
+#3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe) <br>
+      <br>
+# ATM <br>
+VPI=8 <br>
+VCI=35 <br>
+      <br>
+# Specific for RFC1483/2684 routed/bridged <br>
+# if IP_ADDRESS is blank in bridged mode then it uses DHCP to get IP <br>
+IP_ADDRESS= <br>
+NETMASK=255.255.255.0 <br>
+GATEWAY= <br>
+      <br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+en vervang de VPI en VCI door degene die je ISP je gegeven heeft.<br>
+<br>
+4) bewerk het bestand /etc/ppp/pap-secrets <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote"><br>
+# Secrets for authentication using PAP <br>
+# client server secret IP addresses <br>
+username&lt;tab&gt;*&lt;tab&gt;PaSsWoRd&lt;tab&gt;*<br>
+      <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+Vervang de &lt;tab&gt; door de tabulatie toets.<br>
+Geef je eigen username/password in.
+<br>
+<br>
+Then make a copy of this file to : /etc/ppp/chap-secrets<br>
+<br>
+5) Bewerk /etc/ppp/options en schrijf: <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">lock <br>
+defaultroute <br>
+noipdefault <br>
+usepeerdns <br>
+noauth <br>
+sync <br>
+noaccomp <br>
+nopcomp <br>
+noccp <br>
+novj <br>
+holdoff 4 <br>
+persist <br>
+maxfail 25 <br>
+passive <br>
+asyncmap 0 <br>
+lcp-echo-interval 2 <br>
+lcp-echo-failure 7 <br>
+#replace user@domain by your coorect info <br>
+name username<br>
+user username<br>
+plugin /usr/lib/pppd/VERSION/pppoatm.so <br>
+VPI.VCI <br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+Vervang de VPI en VCI door degene die je ISP je gegeven heeft. (bvb.
+8.35) en VERSION door je versie van pppd (bvb. 2.4.1 or 2.4.2)
+<br>
+<br>
+6) Om te verbinden tik je amstart.sh en dan zou je de driver moeten
+zien laden en geinitaliseerd worden
+<br>
+Tik dan ifconfig in om te verifieren of je de ppp0 interface hebt.
+<br>
+<br>
+Als je verbonden bent zou je een ip-adres moeten kunnen pingen, probeer
+: <br>
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">ping 216.239.59.147</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+Als dit lukt schijnt je connectie te werken , probeer nu DNS oplossing
+door te proberen een web adres te pingen (als dit niet lukt,ga dan naar
+stap 7).
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">ping <a href="http://www.google.com/"
+ target="_blank">www.google.com</a></td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+Als de host niet kan bereikt worden , bewerk dan /etc/resolve.conf en
+/etc/ppp/resolve
+(als je wilt kan je dit bestand vervangen en een link leggen naar
+/etc/resolve.conf ,
+om dit te doen , tik je als root
+<br>
+ln -sf /etc/resolve.conf /etc/ppp/resolve )
+.conf en voeg het volgende toe : <br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">nameserver primaire_dns <br>
+nameserver secundaire_dns</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+Vervang de primaire_dns en de secundaire_dns door de ip-adressen die je
+ISP opgeeft. Als je deze niet kent kun je ze opzoeken op www.google.com
+:)<br>
+Om de verbinding te stoppen laat je amstop.sh lopen , om terug te
+verbinden
+laat je amstart.sh lopen.
+(Als dit niet werkt laat je amstop.sh lopen , trek de modemplug 10 sec.
+uit en laat amstart.sh lopen)
+<br>
+<br>
+7) Als stap 6 mislukt terwijl alles in orde lijkt en de modem
+nog altijd niet werkt , probeer dan de xdslusb bronbestanden te
+bewerken.
+(Er zijn 2 bestanden , het ene voor de 2.4 kernel en de andere voor de
+2.6 kernel.
+ze werden genoemd naar de kernel waarvoor ze bestemd zijn :) )
+<br>
+in de folders /usr/amedyn/init en use verander je :<br>
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">#define UDSL_DEFAULT_RCV_BUF_SIZE 64<br>
+#define UDSL_DEFAULT_SND_BUF_SIZE 32</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+8) Als je wilt dat er tijdens het booten van de computer verbinding
+gemaakt wordt,
+tik dan in de /usr/amedyn folder als root :
+<br>
+<br>
+<table align="center" border="0" cellpadding="3" cellspacing="1"
+ width="90%">
+  <tbody>
+    <tr>
+      <td><span class="genmed"><b>Quote:</b></span></td>
+    </tr>
+    <tr>
+      <td class="quote">make add_service </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+9) Als je meer hulp wilt , ga dan naar het forum op
+<a href="http://sourceforge.net/forum/?group_id=84006">sourcefoge's
+zyxel 630-11 project</a>
+en kijk ook eens in /var/log/message en /var/log/syslog om een
+eventuele fout te vinden
+(post deze bestanden alstublieft niet op het forum!!!)<br>
+<br>
+<br>
+<br>
+Credits voor dit document : <br>
+Het bovenstaande document, <a
+ href="mailto:manuc66%20%5Bat%5D%20yahoo%20.%20fr">manuc66</a> and <a
+ href="mailto:max87%20%5Bat%5D%20gmx%20.%20net">max4ever</a>
+</body>
+</html>
