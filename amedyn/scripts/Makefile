@@ -13,7 +13,6 @@ TMESG_PATH = /usr/share/locale
 LANG=
 #LANGUAGES = es ca
 LANGUAGES = es
-generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh
 generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh
 
 generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh amfunctions.sh
@@ -127,7 +126,6 @@ compile_strings: $(all_scripts)
 		echo "Error, type: make -e LANG=language_code $@" 1>&2; \
 		echo "Example: make -e LANG=es $@" 1>&2; \
 		exit 1; \
- 		for j in locale/$$i/LC_MESSAGES/*; do \
 	fi
 	for i in $^; do \
 		msgfmt -o locale/$(LANG)/LC_MESSAGES/$$i.mo po/$(LANG)/$$i.po; \
