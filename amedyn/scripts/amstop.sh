@@ -8,6 +8,9 @@ TEXTDOMAIN=`basename $0`
 . /etc/amedyn
 
 if [ "$RESYNC" = "1" ] && [ "$1" != "amline" ] ; then
+if [ "$RESYNC" -eq 1 ]; then
+    killall amline.sh 
+    killall -g amline.sh 
 fi
 
 if [ "$PROTOCOL_MODE" = "" ]; then
