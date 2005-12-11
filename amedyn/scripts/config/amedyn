@@ -3,12 +3,16 @@
 #
 
 # Line type
-# Driver mode
-DRIVER_MODE=1  # 1 = normal, 2 = debug
+# === Driver mode :
+# - normal = 1
+# - debug = 2
 DRIVER_MODE=1
 
-# Protocol
-PROTOCOL_MODE=2  # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), 3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe)
+# === Protocol :
+# - RFC1483/2684 routed = 1
+# - PPP over ATM (pppoa) = 2
+# - RFC1483/2684 bridged = 3
+# - PPP over Ethernet (pppoe) = 4
 PROTOCOL_MODE=2 
 RX_ENDPOINT="0x87"
 TX_ENDPOINT="0x07"
@@ -25,6 +29,9 @@ VCI=32
 
 # Specific for RFC1483/2684 routed/bridged
 #  if IP_ADDRESS is blank in bridged mode then it uses DHCP to get IP
+IP_ADDRESS=
+NETMASK=255.255.255.0
+GATEWAY=
 
 # === Re-sync modem line if line goes down
 # - don't resync on line down = 0
