@@ -61,6 +61,8 @@
   Split amload.c. Now all funtions are in amfunctions.c  
   Split load_firmware.
 
+  11/12/2005 Emmanuel Counasse
+  Add resync function
 */
 
 
@@ -400,6 +402,73 @@ int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem)
   long len;			/* length */
 
   len = transfer_ctrl_msg (adsl_handle, VENDOR_REQUEST_OUT, 0x03, 0x03, 0x00, buf, 0);
+  if (len != 0)
+      return -1;
+
+  return 0;
+  unsigned char buf[0x1ff];	/* buffer */
+}
+
+/* resync line */
+int resync_line(usb_dev_handle * adsl_handle, int tmodem) {
+  char buf[0x1ff];	/* buffer */
+  int len;
+  int line_up;
+  int error;
+
+  int read = 1;
+  int read1 = 0;
+
+
+  line_up = 0;
+  error = 0;
+  while ((line_up < 4) && (error < 3)) {
+    memset(buf, 0, 0x10);
+    if (read1 > 0 || read) {
+      len = usb_bulk_read(adsl_handle, USB_IN_INFO, (char*) buf, 0x10, DATA_TIMEOUT);
+      read1 = read1 - 1;
+      if (len < 0) {
+	printf (gettext("Error retrieving info!
+"));
+	++error;
+      }
+      else if (buf[0] == 0x01) {
+	error = 0;
+	if (buf[1] == MODEM_UP) {
+	  printf("up|");
+	  fflush(stdout);
+	  ++line_up;
+	}
+	else if (buf[1] == MODEM_DOWN) {
+	  printf("#|");
+	  fflush(stdout);
+	  if (send_line_down_signal (adsl_handle, tmodem) == -1)
+	    ++error;
+	  else if (send_cmds_sync (adsl_handle, tmodem) == -1) /* Sync line */
+	    ++error;
+	} else if (buf[1] == MODEM_WAIT) {
+	  printf("_");
+	  fflush(stdout);
+	}
+	else if (buf[1] == MODEM_INIT) {
+	  printf("-");
+	  fflush(stdout);
+	}
+      }
+      else if ((buf[0] == 0x02) && (len == 1)) {
+	error = 0;
+	printf("#|");
+	fflush(stdout);
+	if (send_line_down_signal (adsl_handle, tmodem) == -1)
+	  ++error;
+      }
+    }
+    else {
+      sleep (1);
+    }
+  }
+
+  if (error == 3) {
     printf("Too many errors !");
     return -1;
   }
