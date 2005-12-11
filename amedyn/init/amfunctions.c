@@ -386,6 +386,18 @@ int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   if (len < 0)
     return -1;
 
+  len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, 0x0e, 0x03, 0x00, buf, 0x0c);
+  if (len < 0x0c)
+    return -1;
+
+  return 0;
+  }
+
+/* Send line down signal */
+int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem)
+{
+  char buf[0x1ff];		/* buffer */
+  long len;			/* length */
 
   len = transfer_ctrl_msg (adsl_handle, VENDOR_REQUEST_OUT, 0x03, 0x03, 0x00, buf, 0);
     printf("Too many errors !");
@@ -776,6 +788,7 @@ do
     else {
       PDEBUG(gettext("%li bytes readed:
 "), len);
+#if DEBUG_TRANSFER
       if (len > 0)
         dump(buf, len, 16);
 #endif
