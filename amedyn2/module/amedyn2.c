@@ -912,7 +912,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	    instance->firmfile = "fw-usb.bin"; }
 	if (usb_dev->descriptor.idProduct == AME_PRODUCTID3) {
 	    dbg("Config for modem type 3 (AAM600UG)");
-	.owner		= THIS_MODULE,
 	    instance->datamax = 0x1f2;
 	    instance->firmfile = "Fw-usb_A.bin"; }
 /* ------------------------------------------------------------------- */
