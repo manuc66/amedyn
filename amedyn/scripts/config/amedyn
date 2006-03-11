@@ -3,17 +3,21 @@
 #
 
 # Line type
-# === Driver mode :
-# - normal = 1
-# - debug = 2
-DRIVER_MODE=1
+# 0x15 = ANALOG
+LINE_TYPE="0x15" #  0x15 = ANALOG, 0x11 = ISDN
 
-# === Protocol :
-# - RFC1483/2684 routed = 1
-# - PPP over ATM (pppoa) = 2
-# - RFC1483/2684 bridged = 3
-# - PPP over Ethernet (pppoe) = 4
-PROTOCOL_MODE=2 
+# Driver mode
+# 1 = amedyn
+DRIVER_MODE=1  # 1 = normal, 2 = debug
+
+# Protocol
+# 1 = RFC1483/2684 routed
+PROTOCOL_MODE=2  # 1 = RFC1483/2684 routed, 2 = PPP over ATM (pppoa), 3 = RFC1483/2684 bridged, 4 = PPP over Ethernet (pppoe)
+
+# xusbatm
+VENDOR="0x06b9"  # 0x06b9 / 0x0b05 / 0x1767
+VENDOR="0x06b9"  # 0x06b9 / 0x0b05
+PRODUCT="0xa5a5" # 0xa5a5 / 0x6206
 RX_ENDPOINT="0x87"
 TX_ENDPOINT="0x07"
 RX_ALTSETTING=1
