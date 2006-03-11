@@ -28,7 +28,6 @@
 #include <linux/atm.h>
 #include <linux/atmdev.h>
 #include <linux/completion.h>
-#include <linux/config.h>
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/kref.h>
@@ -37,14 +36,9 @@
 #include <linux/usb.h>
 #include <linux/mutex.h>
 
-#define DEBUG
 /*
 #define VERBOSE_DEBUG
 */
-#if !defined (DEBUG) && (defined (CONFIG_USB_DEBUG) || defined (VERBOSE_DEBUG))
-#	define DEBUG
-#endif
-
 
 #ifdef DEBUG
 #define UDSL_ASSERT(x)	BUG_ON(!(x))
