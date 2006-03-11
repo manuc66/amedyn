@@ -101,8 +101,6 @@ struct usbatm_data;
 *
 *  	bind, heavy_init, atm_start, ..., atm_stop, unbind
 */
-	struct module *owner;
-
 
 struct usbatm_driver {
 	const char *driver_name;
