@@ -70,7 +70,6 @@ static const char amedyn_driver_name[] = "amedyn2";
 
 #define DEFAULT_BULK_ALTSETTING	1
 #define DEFAULT_ISOC_ALTSETTING	1 /* This modem don't have iso*/
-static int altsetting = DEFAULT_BULK_ALTSETTING;
 
 static unsigned int altsetting = DEFAULT_BULK_ALTSETTING;
 
@@ -81,7 +80,6 @@ static int linetype = 0;
 
 module_param(linetype, uint, S_IRUGO | S_IWUSR);
 module_param(linetype, uint, 0444);
-module_param(altsetting, int, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(linetype, "Set phone line type code");
 
 module_param(altsetting, uint, S_IRUGO | S_IWUSR);
@@ -104,7 +102,6 @@ MODULE_PARM_DESC(altsetting,
 
 #define hex2int(c) ( (c >= '0') && (c <= '9') ? (c - '0') : ((c & 0xf) + 9) )
 
-	int altsetting;
 struct amedyn_instance_data {
 	struct usbatm_data *usbatm;
 
@@ -713,7 +710,6 @@ static int amedyn_atm_start(struct usbatm_data *usbatm, struct atm_dev *atm_dev)
 	if (usb_string(usb_dev, usb_dev->descriptor.iSerialNumber, mac_str, sizeof(mac_str)) == 12) {
 		for (i = 0; i < 6; i++)
 			atm_dev->esi[i] = (hex2int(mac_str[i * 2]) * 16) + (hex2int(mac_str[i * 2 + 1]));
-	.owner		= THIS_MODULE,
 	}
 
 	/* Start modem synchronisation */
@@ -838,7 +834,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	use_isoc = 0;
 	/* altsetting may change at any moment, so take a snapshot */
 	instance->altsetting = altsetting;
-	usbatm->flags |= use_isoc ? UDSL_USE_ISOC : 0;
 
 	if (instance->altsetting)
 		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, instance->altsetting)) < 0) {
