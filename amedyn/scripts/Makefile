@@ -64,7 +64,6 @@ uninstall:
 #	done
 
 add_service: service/$(SERVICE_FILE)
-			chkconfig --add $(SERVICE_FILE); \
 	install -c -m 755 -p $^ /etc/$(SERVICE_FILE).service
 	if [ -f /etc/debian_version ]; then \
 		install -c -m 755 -p $^ /etc/init.d/$(SERVICE_FILE); \
@@ -90,7 +89,6 @@ add_service: service/$(SERVICE_FILE)
 				fi \
 			fi \
 		fi \
-			chkconfig --del $(SERVICE_FILE); \
 	fi
 
 remove_service:
