@@ -36,7 +36,6 @@ remove_module
 #  echo $">>> Closing ADSL line..."
 #  ($IOCTL_NAME 5 && echo && sleep 4s)
 #fi
-driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|$MODULE_NAMEDBG$"`
 
 driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|xusbatm|$MODULE_NAMEDBG$"`
 if [ "$driver" != "" ]; then
