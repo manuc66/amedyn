@@ -93,7 +93,6 @@ static int usbatm_print_packet(const unsigned char *data, int len);
 
 #define DRIVER_AUTHOR	"Johan Verrept, Duncan Sands <duncan.sands@free.fr>"
 #define DRIVER_VERSION	"1.10-OAM"
-#define DRIVER_VERSION	"1.9-OAM"
 #define DRIVER_DESC	"Generic USB ATM/DSL I/O, version " DRIVER_VERSION
 
 static const char usbatm_driver_name[] = "usbatm";
@@ -113,8 +112,7 @@ static const char usbatm_driver_name[] = "usbatm";
 #define THROTTLE_MSECS			100	/* delay to recover processing after urb submission fails */
 
 static unsigned int num_rcv_urbs = UDSL_DEFAULT_RCV_URBS;
-static unsigned int rcv_buf_size = UDSL_DEFAULT_RCV_BUF_SIZE;
-static unsigned int snd_buf_size = UDSL_DEFAULT_SND_BUF_SIZE;
+static unsigned int num_snd_urbs = UDSL_DEFAULT_SND_URBS;
 static unsigned int rcv_buf_bytes = UDSL_DEFAULT_RCV_BUF_SIZE;
 static unsigned int snd_buf_bytes = UDSL_DEFAULT_SND_BUF_SIZE;
 
@@ -129,15 +127,13 @@ MODULE_PARM_DESC(num_snd_urbs,
 		 "Number of urbs used for transmission (range: 0-"
 		 __MODULE_STRING(UDSL_MAX_SND_URBS) ", default: "
 		 __MODULE_STRING(UDSL_DEFAULT_SND_URBS) ")");
-module_param(rcv_buf_size, uint, S_IRUGO);
-MODULE_PARM_DESC(rcv_buf_size,
+
 module_param(rcv_buf_bytes, uint, S_IRUGO);
 MODULE_PARM_DESC(rcv_buf_bytes,
 		 "Size of the buffers used for reception, in bytes (range: 1-"
 		 __MODULE_STRING(UDSL_MAX_BUF_SIZE) ", default: "
 		 __MODULE_STRING(UDSL_DEFAULT_RCV_BUF_SIZE) ")");
-module_param(snd_buf_size, uint, S_IRUGO);
-MODULE_PARM_DESC(snd_buf_size,
+
 module_param(snd_buf_bytes, uint, S_IRUGO);
 MODULE_PARM_DESC(snd_buf_bytes,
 		 "Size of the buffers used for transmission, in bytes (range: 1-"
@@ -815,7 +811,6 @@ static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	skb_queue_tail(&instance->sndqueue, skb);
 	tasklet_schedule(&instance->tx_channel.tasklet);
 
-void usbatm_get_instance(struct usbatm_data *instance)
 	return 0;
 
  fail:
@@ -823,7 +818,6 @@ void usbatm_get_instance(struct usbatm_data *instance)
 	return err;
 }
 
-void usbatm_put_instance(struct usbatm_data *instance)
 
 /********************
 **  bean counting  **
@@ -1102,7 +1096,6 @@ static int usbatm_atm_init(struct usbatm_data *instance)
 		usb_err(instance, "%s: failed to register ATM device!
 ", __func__);
 		return -1;
-	shutdown_atm_dev(atm_dev); /* usbatm_atm_dev_close will eventually be called */
 	}
 
 	instance->atm_dev = atm_dev;
@@ -1246,8 +1239,7 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 
 	if ((i = usb_string(usb_dev, usb_dev->descriptor.iProduct, buf, length)) < 0)
 		goto bind;
-	instance->rx_channel.buf_size = rcv_buf_size;
-	instance->tx_channel.buf_size = snd_buf_size;
+
 	buf += i;
 	length -= i;
 
@@ -1314,7 +1306,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 		goto fail_unbind;
 	}
 
-				  buffer, channel->buf_size, usbatm_complete, channel);//QQ is this OK for iso urbs; also - looks like should use iso_size * iso_packets rather than channel->buf_size
 	num_packets = max (1U, (rcv_buf_bytes + maxpacket / 2) / maxpacket); /* round */
 
 	if (num_packets * maxpacket > UDSL_MAX_BUF_SIZE)
@@ -1447,7 +1438,6 @@ void usbatm_usb_disconnect(struct usb_interface *intf)
 		dev_dbg(dev, "%s: NULL instance!
 ", __func__);
 		return;
-		shutdown_atm_dev(instance->atm_dev);
 	}
 
 	usb_set_intfdata(intf, NULL);
@@ -1470,10 +1460,9 @@ void usbatm_usb_disconnect(struct usb_interface *intf)
 
 	for (i = 0; i < num_rcv_urbs + num_snd_urbs; i++)
 		usb_kill_urb(instance->urbs[i]);
-	    || (rcv_buf_size < 1)
-	    || (rcv_buf_size > UDSL_MAX_BUF_SIZE)
-	    || (snd_buf_size < 1)
-	    || (snd_buf_size > UDSL_MAX_BUF_SIZE))
+
+	del_timer_sync(&instance->rx_channel.delay);
+	del_timer_sync(&instance->tx_channel.delay);
 
 	/* turn usbatm_[rt]x_process into something close to a no-op */
 	/* no need to take the spinlock */
