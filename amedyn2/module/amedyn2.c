@@ -582,72 +582,58 @@ static void amedyn_check_status(struct work_struct *work)
 
 	instance->poll_delay = max(instance->poll_delay / 2, MIN_POLL_DELAY);
 
-	if ( buf[0] == 0x01 )
-		atm_dbg(usbatm, "%s: line state %02x
-", __func__, buf[OFFSET_7]);
-	else {
+	
+	if ( buf[0] == 0x02 ) {
 		if (atm_dev->signal != ATM_PHY_SIG_LOST) {
 			atm_dev->signal = ATM_PHY_SIG_LOST;
-	    return ;
-	}
+			atm_info(usbatm, "ADSL line is down
+");
+		}
+		dbg("Line sync lost?");
+		amedyn_line_down_signal (instance);
+		amedyn_start_synchro(instance);
+		return;
 	}
 
-	switch (buf[OFFSET_7]) {
-	case 0x00:
-		atm_dev->signal = ATM_PHY_SIG_LOST;
-		atm_info(usbatm, "ADSL line is down
+	if ( buf[0] == 0x40 ) {
+		if (atm_dev->signal != ATM_PHY_SIG_LOST) {
+			atm_dev->signal = ATM_PHY_SIG_LOST;
+			atm_info(usbatm, "ADSL line is down
 ");
-		/* It'll never resync again unless we ask it to... */
+		}
+		atm_warn(usbatm, "Line sync faild with code: %02x
+", buf[1]);
 		amedyn_line_down_signal (instance);
-		ret = amedyn_start_synchro(instance);
-		break;
+//	if ( buf[0] == 0x01 )
 //		atm_dbg(usbatm, "%s: line state %02x
 ", __func__, buf[OFFSET_7]);
 //	else {
-	case 0x08:
-		if (buf[OFFSET_7] != instance->last_status) {
 //	    atm_dbg(usbatm, "amedyn_get_status return useless info
 ");
 //	    return ;
 //	}
-		}
-		break;
 		atm_dbg(usbatm, "%s: line state %02x
 ", __func__, buf[OFFSET_7]);
 	else {
-	case 0x10:
-		if (buf[OFFSET_7] != instance->last_status) {
 	    atm_dbg(usbatm, "amedyn_get_status return useless info
 ");
 	    return ;
 	} */
-		}
-		break;
 
 	status = buf[OFFSET_7];	
-	case 0x20:
-		if (buf[OFFSET_7] != instance->last_status) {
 
 	if ((status != instance->last_status) || !status) {
-			atm_info(usbatm,
-				 "ADSL line is up
-");
-		}
-		break;
+		atm_dbg(usbatm, "%s: line state 0x%02x
+", __func__, status);
 
 		switch (status) {
-	default:
-		if (buf[OFFSET_7] != instance->last_status) {
 		case 0x00:
 			atm_dev->signal = ATM_PHY_SIG_LOST;
-			atm_info(usbatm, "Unknown line state %02x
-", buf[OFFSET_7]);
+			if (instance->last_status)
 				atm_info(usbatm, "ADSL line is down
 ");
 			/* It may never resync again unless we ask it to... */
-		break;
 			amedyn_line_down_signal (instance);
-	instance->last_status = buf[OFFSET_7];
 			ret = amedyn_start_synchro(instance);
 			break;
 
