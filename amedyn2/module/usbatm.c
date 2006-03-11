@@ -1253,7 +1253,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 			goto fail_free;
 	}
 
-
 	/* private fields */
 
 	kref_init(&instance->refcount);		/* dropped in usbatm_usb_disconnect */
