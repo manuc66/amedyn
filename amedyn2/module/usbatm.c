@@ -415,7 +415,6 @@ static void usbatm_extract_one_cell(struct usbatm_data *instance, unsigned char 
 ", __func__, vpi, vci);
 			atomic_inc(&vcc->stats->rx_err);
 		}
-			  __func__, sarb->len, vcc);
 		return;
 	}
 
@@ -550,15 +549,13 @@ static void usbatm_extract_cells(struct usbatm_data *instance,
 		memcpy(instance->cell_buf, source, avail_data);
 		instance->buf_usage = avail_data;
 	}
-	unsigned int num_written;
 }
 
 
 /*************
 **  encode  **
 *************/
-	for (num_written = 0; num_written < avail_space && ctrl->len;
-	     num_written += stride, target += stride) {
+
 static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 				       struct sk_buff *skb,
 				       u8 *target, unsigned int avail_space)
@@ -602,7 +599,6 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 			trailer[3] = ctrl->len;
 
 			ctrl->crc = ~ crc32_be(ctrl->crc, ptr, left - 4);
-	return num_written;
 
 			trailer[4] = ctrl->crc >> 24;
 			trailer[5] = ctrl->crc >> 16;
@@ -672,7 +668,6 @@ static void usbatm_rx_process(unsigned long data)
 
 		if (usbatm_submit_urb(urb))
 			return;
-	unsigned int num_written = 0;
 	}
 }
 
@@ -685,18 +680,15 @@ static void usbatm_tx_process(unsigned long data)
 {
 	struct usbatm_data *instance = (struct usbatm_data *)data;
 	struct sk_buff *skb = instance->current_skb;
-			num_written = (urb->status == -EAGAIN) ?
 	struct urb *urb = NULL;
 	const unsigned int buf_size = instance->tx_channel.buf_size;
 	unsigned int bytes_written = 0;
 	u8 *buffer = NULL;
-		num_written += usbatm_write_cells(instance, skb,
-						  buffer + num_written,
-						  buf_size - num_written);
+
+	if (!skb)
 		skb = skb_dequeue(&instance->sndqueue);
 
 	while (skb) {
-		     __func__, num_written, skb, urb);
 		if (!urb) {
 			urb = usbatm_pop_urb(&instance->tx_channel);
 			if (!urb)
@@ -708,8 +700,7 @@ static void usbatm_tx_process(unsigned long data)
 
 		bytes_written += usbatm_write_cells(instance, skb,
 						  buffer + bytes_written,
-		if (num_written == buf_size || (!skb && num_written)) {
-			urb->transfer_buffer_length = num_written;
+						  buf_size - bytes_written);
 
 		vdbg("%s: wrote %u bytes from skb 0x%p to urb 0x%p",
 		     __func__, bytes_written, skb, urb);
@@ -778,7 +769,6 @@ static int usbatm_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	if (!instance || instance->disconnected) {
 #ifdef DEBUG
 		if (printk_ratelimit())
-			  __func__, skb->len, ATM_MAX_AAL5_PDU);
 			printk(KERN_DEBUG "%s: %s!
 ", __func__, instance ? "disconnected" : "NULL instance");
 #endif
@@ -1249,8 +1239,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 
 	init_MUTEX(&instance->serialize);
 	if (length <= 0 || (i = usb_make_path(usb_dev, buf, length)) < 0)
-	instance->rx_channel.buf_size = rcv_buf_bytes;
-	instance->tx_channel.buf_size = snd_buf_bytes;
 		goto bind;
 
 	buf += i;
@@ -1262,32 +1250,34 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 	if (driver->bind && (error = driver->bind(instance, intf, id)) < 0) {
 			dev_err(dev, "%s: bind failed: %d!
 ", __func__, error);
-	/* calculate buffer sizes */
+			goto fail_free;
+	}
 
 
+	/* private fields */
+
+	kref_init(&instance->refcount);		/* dropped in usbatm_usb_disconnect */
+	mutex_init(&instance->serialize);
+
+	instance->thread_pid = -1;
+	init_completion(&instance->thread_started);
+	init_completion(&instance->thread_exited);
+
+	INIT_LIST_HEAD(&instance->vcc_list);
+	skb_queue_head_init(&instance->sndqueue);
+
+	usbatm_init_channel(&instance->rx_channel);
+	usbatm_init_channel(&instance->tx_channel);
+	tasklet_init(&instance->rx_channel.tasklet, usbatm_rx_process, (unsigned long)instance);
+	tasklet_init(&instance->tx_channel.tasklet, usbatm_tx_process, (unsigned long)instance);
+	instance->rx_channel.stride = ATM_CELL_SIZE + driver->rx_padding;
+	instance->tx_channel.stride = ATM_CELL_SIZE + driver->tx_padding;
+	instance->rx_channel.usbatm = instance->tx_channel.usbatm = instance;
 
 	if ((instance->flags & UDSL_USE_ISOC) && driver->isoc_in)
 		instance->rx_channel.endpoint = usb_rcvisocpipe(usb_dev, driver->isoc_in);
-		unsigned int maxpacket = usb_maxpacket(usb_dev, channel->endpoint, i);
-		unsigned int num_packets;
-
-		if ((maxpacket < 1) || (maxpacket > UDSL_MAX_BUF_SIZE)) {
-			dev_err(dev, "%s: invalid endpoint %02x!
-", __func__, usb_pipeendpoint(channel->endpoint));
-			error = -EINVAL;
-			goto fail_unbind;
-		}
 	else
 		instance->rx_channel.endpoint = usb_rcvbulkpipe(usb_dev, driver->bulk_in);
-		num_packets = max (1U, (channel->buf_size + maxpacket / 2) / maxpacket); /* round */
-
-		if (num_packets * maxpacket > UDSL_MAX_BUF_SIZE)
-			num_packets--;
-
-		channel->buf_size = num_packets * maxpacket;
-		channel->packet_size = maxpacket;
-		dev_dbg(dev, "%s: using %d byte buffer for channel 0x%p
-", __func__, channel->buf_size, channel);
 
 	instance->tx_channel.endpoint = usb_sndbulkpipe(usb_dev, driver->bulk_out);
 
