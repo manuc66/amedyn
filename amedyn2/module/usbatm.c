@@ -296,7 +296,9 @@ static void usbatm_complete(struct urb *urb, struct pt_regs *regs)
 	/* usually in_interrupt(), but not always */
 	spin_lock_irqsave(&channel->lock, flags);
 
-	if (unlikely(urb->status)) {
+	/* must add to the back when receiving; doesn't matter when sending */
+	list_add_tail(&urb->urb_list, &channel->list);
+
 	spin_unlock_irqrestore(&channel->lock, flags);
 
 	if (unlikely(urb->status) &&
