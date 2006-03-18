@@ -27,7 +27,10 @@ if [ "$PPPOE" = "" ]; then
 else
   if [ -x /usr/bin/poff ]; then
     poff dsl-provider 
-    adsl-stop
+  else
+    if [ -x /usr/bin/adsl-stop ]; then
+	adsl-stop
+    else
 	pppoe-stop
     fi
   fi
