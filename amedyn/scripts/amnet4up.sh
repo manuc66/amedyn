@@ -89,7 +89,10 @@ echo $">>> Loading pppd daemon..."
 if [ "$PPPOE" = "" ]; then
   pppd || exit 1
 else
-     adsl-start || exit 1
+  if [ -x /usr/bin/pon ]; then
+     pon dsl-provider || exit 1
+  else
+    if [ -x /usr/bin/adsl-start ]; then
      if [ -x /usr/bin/adsl-start ]; then
 	adsl-start || exit 1
     else
