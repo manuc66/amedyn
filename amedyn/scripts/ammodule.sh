@@ -3,51 +3,45 @@
 . /etc/amedyn
 
 . /usr/sbin/amfunctions.sh
-MODULE_NAME=amedyn
-MODULE_NAMEDBG=amedyndbg
 
 KERNEL_VERSION=`uname -r | cut -d'.' -f1-2`
 
 if [ "$1" = "1" ]; then
 
-    case "$DRIVER_MODE" in
-	1)
-          # normal mode:
-	    echo $"Launching driver in normal mode...";
-	    MODULE_RUN=$MODULE_NAME
-	    ;;
-	
-	2)
-           # debug mode:
-	    echo $"Launching driver in debug mode...";
-	    MODULE_RUN=$MODULE_NAMEDBG
-	    ;;
-
-    esac
-    
     # Load Zyxel 630-11 & Asus AAM6000UG module
     echo $">>> Loading driver..."
     
     if [ "$KERNEL_VERSION" != "2.4" ]; then
 	    crc32=`lsmod | cut -d ' ' -f1 | grep -E "^crc32$"`
-	crc32=`lsmod | cut -d ' ' -f1 | grep -E "^crc32$"`
-	if [ "$crc32" = "" ]; then
-	    modprobe crc32
-	fi
+	    if [ "$crc32" = "" ]; then
+	        /sbin/modprobe -q crc32
+	        /sbin/modprobe crc32
 	    fi
     fi
-    
-    modprobe $MODULE_RUN || exit 1
+
+    case "$DRIVER_MODE" in
+        1)
+            # amedyn driver:
+            echo $"Launching driver amedyn...";
+            MODULE_RUN="amedyn"
+            ;;
+
+        2)
+            # amedyn2 driver:
+            echo $"Launching driver amedyn2...";
+            MODULE_RUN="amedyn2 linetype=$LINE_TYPE"
+            ;;
+
+        3)
+            # xusbatm driver:
+            echo $"Launching generic driver xusbatm..."
+            MODULE_RUN="xusbatm vendor=$VENDOR product=$PRODUCT rx_endpoint=$RX_ENDPOINT tx_endpoint=$TX_ENDPOINT rx_altsetting=$RX_ALTSETTING tx_altsetting=$TX_ALTSETTING"
+            ;;
+	    ;;
+    esac
    
     /sbin/modprobe $MODULE_RUN || exit 1
     sleep 3s
-    driver=`lsmod | cut -d' ' -f1 | grep -E "^$MODULE_NAME|$MODULE_NAMEDBG$"`
-    if [ "$driver" != "" ]; then
-	echo $">>> Removing amedyn driver..."
-	rmmod $driver || exit 1
-	echo
-	sleep 1s
-    fi
 else
     remove_module 
 fi 

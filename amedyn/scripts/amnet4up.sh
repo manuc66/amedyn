@@ -2,14 +2,12 @@
 
 . /etc/amedyn
 
+. /usr/sbin/amfunctions.sh
+
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
 #fi
-
-
-. /etc/amedyn
-
 
 # For PPPoE
 echo $">>> Setting PPPoE <<<"
@@ -29,11 +27,6 @@ fi
 
 # Now, we can send & receive data
 activate_transfer
-echo $">>> Activating send/receive data..."
-amioctl 1 || exit 1
-sleep 3s
-echo 
-
 
 # Load br2684 kernel module
 brmod=`lsmod | cut -d' ' -f1 | grep -q -E "^br2684$"`
@@ -41,7 +34,6 @@ if [ "$brmod" = "" ]; then
   echo $">>> Loading br2684 kernel module..."
 # No exit if error, module can be inserted in kernel
   /sbin/modprobe br2684
-  modprobe br2684
   echo
 fi
 
@@ -49,7 +41,6 @@ fi
 echo $">>> Loading ppp_generic..."
 # No exit if error, module can be inserted in kernel
 /sbin/modprobe ppp_generic
-modprobe ppp_generic
 echo
 
 
@@ -93,11 +84,9 @@ else
      pon dsl-provider || exit 1
   else
     if [ -x /usr/bin/adsl-start ]; then
-     if [ -x /usr/bin/adsl-start ]; then
-	adsl-start || exit 1
+	    adsl-start || exit 1
     else
 	    pppoe-connect || exit 1
-	pppoe-connect || exit 1
     fi
   fi
 fi

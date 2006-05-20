@@ -13,7 +13,6 @@ TMESG_PATH = /usr/share/locale
 LANG=
 #LANGUAGES = es ca
 LANGUAGES = es
-generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh
 
 generic_scripts = amload.sh amunload.sh amstart.sh amstop.sh amline.sh ammodule.sh amfunctions.sh
 routed_scripts = amnetup.sh amnetdown.sh

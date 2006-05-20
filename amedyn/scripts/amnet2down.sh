@@ -1,6 +1,9 @@
 #!/bin/bash
 
 . /etc/amedyn
+
+. /usr/sbin/amfunctions.sh
+
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
@@ -17,9 +20,3 @@ if [ "$pid" != "" ]; then
 fi
 
 stop_transfer
-if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then
-  echo $">>> Stopping transfers..."
-  amioctl 2
-  echo
-fi
-

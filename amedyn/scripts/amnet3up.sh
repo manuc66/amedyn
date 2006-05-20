@@ -1,12 +1,13 @@
 #!/bin/bash
 
 . /etc/amedyn
+
+. /usr/sbin/amfunctions.sh
+
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
 #fi
-
-. /etc/amedyn
 
 # For RFC1483/2684 bridged protocols
 echo $">>> Setting RFC1483/2684 bridged <<<"
@@ -28,7 +29,6 @@ if [ "$brmod" = "" ]; then
   echo $">>> Loading br2684 kernel module..."
 # No exit if error, module can be inserted in kernel
   /sbin/modprobe br2684 
-  modprobe br2684 
   echo
 fi
 
@@ -63,10 +63,6 @@ fi
 
 # Now, we can send & receive data
 activate_transfer
-echo $">>> Activating send/receive data..."
-amioctl 1 || exit 1
-sleep 3s
-echo 
 
 # If no static address, use DHCP
 if [ "$IP_ADDRESS" = "" ]; then

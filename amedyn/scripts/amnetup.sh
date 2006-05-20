@@ -1,12 +1,13 @@
 #!/bin/bash
 
 . /etc/amedyn
+
+. /usr/sbin/amfunctions.sh
+
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
 #fi
-
-. /etc/amedyn
 
 # For RFC1483/2684 routed protocols
 echo $">>> Setting RFC1483/2684 routed <<<"
@@ -53,10 +54,6 @@ fi
 
 # Now, we can send & receive data
 activate_transfer
-echo $">>> Activating send/receive data..."
-amioctl 1 || exit 1
-sleep 3s
-echo
 
 # Create a PVC, link IP_ADDRESS with INTERFACE, VPI, VCI
 echo $">>> Creating PVC..."

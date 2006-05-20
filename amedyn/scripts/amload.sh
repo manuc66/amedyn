@@ -1,14 +1,13 @@
 #!/bin/bash
 
 . /etc/amedyn
+
+. /usr/sbin/amfunctions.sh
+
 TEXTDOMAIN=`basename $0`
 #if [ -d "./locale" ]; then
 #  TEXTDOMAINDIR="./locale"
 #fi
-
-. /etc/amedyn
-
-FLOAD_NAME=amload
 
 echo $">>> Inits Zyxel 630-11 & Asus AAM6000UG <<<"
 echo
@@ -20,7 +19,6 @@ if [ "$KERNEL_VERSION" = "2.4" ]; then
   if [ "$usbcon" = "" ]; then
     echo $">>> Loading USB controller..."
     /sbin/modprobe uhci > /dev/null || /sbin/modprobe usb-ohci > /dev/null || /sbin/modprobe ehci-hcd > /dev/null 
-    modprobe uhci > /dev/null || modprobe usb-ohci > /dev/null || modprobe ehci-hcd > /dev/null 
     sleep 5s
     echo
   fi
@@ -29,9 +27,8 @@ else
   if [ "$usbcon" = "" ]; then
     echo $">>> Loading USB controller..."
     /sbin/modprobe uhci-hcd
-    modprobe uhci-hcd
-    modprobe ohci-hcd
-    modprobe ehci-hcd
+    /sbin/modprobe ohci-hcd
+    /sbin/modprobe ehci-hcd
     sleep 5s
     echo
   fi
@@ -47,23 +44,20 @@ if [ "$mt_old" = "" ] && [ "$mt_new" = "" ]; then
   echo
 fi
 
-ammodule.sh 0
 remove_module
 
 # Load firmware
-echo $">>> Loading firmware..."
-$FLOAD_NAME || exit 1
-
+if [ "$DRIVER_MODE" == "1" -o "$DRIVER_MODE" == "3" ]; then
+    echo $">>> Loading firmware..."
+    amload || exit 1
     amload -fcs || exit 1
     amload -fcs --linetype $LINE_TYPE || exit 1
     amload $LOADPRMS || exit 1
-#sleep 5s
-#echo
+fi
 
 # Wait processor (?)
 sleep 5s
 echo
-
 
 ammodule.sh 1 || exit 1
 

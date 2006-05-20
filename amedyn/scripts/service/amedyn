@@ -58,7 +58,6 @@ case "$1" in
 	;;
     status)
 	if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyn2|xusbatm$"; then
-	if lsmod | cut -d' ' -f1 | grep -q -E "^amedyn|amedyndbg$"; then
 	    echo $"Driver loaded"
 	    RETVAL=0
         else
