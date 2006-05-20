@@ -45,39 +45,14 @@ RPM_RELEASE = 1
 all: clean compile
 
 compile: AME_MODULE
-#install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
-compile: AME_INIT AME_MODULE AME_CONTROL BRIDGED
 
 install: AME_MODULE_install
-install: remove_service AME_INIT_install AME_MODULE_install AME_SCRIPTS_install  AME_CONTROL_install BRIDGED_install
-
-AME_INIT: init
-
-AME_CONTROL:
-	cd amcontrol && make
 
 AME_MODULE: module
 	cd module && make
 
-AME_SCRIPTS: scripts
-	cd scripts && make
-
-BRIDGED: bridged
-	cd bridged && make
-
-AME_INIT_install: init
-
-AME_CONTROL_install:
-	cd amcontrol && make install
-
 AME_MODULE_install: module
 	cd module && make install
-
-AME_SCRIPTS_install: scripts
-	cd scripts && make
-
-BRIDGED_install: bridged
-	cd bridged && make install
 
 package: clean
 	cd .. && tar -zcvf ${TGZ_SRC_NAME} amedyn
@@ -106,24 +81,10 @@ rpm: clean compile_install
 	mv -f /etc/amedyn.config /etc/amedyn
 
 uninstall: module
-#uninstall: firmware init module scripts panel bridged
-uninstall: init module scripts bridged
 	cd module && make uninstall
-	cd scripts && make uninstall
-	cd bridged && make uninstall
 
 clean: module
-#clean: init module sarlib panel bridged
-clean: init module bridged amcontrol
 	cd module && make clean
-	cd bridged && make clean
-	cd amcontrol && make clean
-
-add_service: scripts/Makefile
-	cd scripts && make add_service
-
-remove_service: scripts/Makefile
-	cd scripts && make remove_service
 
 help:
 	echo "Type:"
@@ -134,5 +95,3 @@ help:
 	echo "  make deb -> To build a deb package for your system (it will be created in previous directory)"
 	echo "  make package -> To build a tgz package (it will be created in previous directory)"
 	echo "  make uninstall -> To remove installed files"
-	echo "  make add_service -> To install driver as a service (you don't need type amstart.sh)"
-	echo "  make remove_service -> To remove driver service"
