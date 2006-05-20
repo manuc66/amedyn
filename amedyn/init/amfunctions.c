@@ -330,7 +330,6 @@ int send_block(usb_dev_handle *adsl_handle, int place, char *bufin, int len)
 /* start code execution at specified address */
 int jump_to_address(usb_dev_handle *adsl_handle, unsigned int place)
 {
-  unsigned char buf[6];  /* buffer */
   char buf[6];  /* buffer */
 
   buf[0] = 0x08; // Command (= set base address)
@@ -353,7 +352,6 @@ int jump_to_address(usb_dev_handle *adsl_handle, unsigned int place)
 /* Say modem sync line */
 int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   {
-  unsigned char buf[0x1ff];   /* buffer */
   char buf[0x1ff];   /* buffer */
   long len;     /* length */
 
@@ -406,7 +404,6 @@ int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem)
       return -1;
 
   return 0;
-  unsigned char buf[0x1ff];	/* buffer */
 }
 
 /* resync line */
@@ -476,12 +473,10 @@ int resync_line(usb_dev_handle * adsl_handle, int tmodem) {
   return 0;
 }
 
-  unsigned char buf[0x1ff];   /* buffer */
 
 /* load firmware */
 int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 {
-  unsigned char bufconf[8];  /* buffer to save config bytes */
   char buf[0x1ff];   /* buffer */
   FILE *soft;   /* file handle */
   long len;     /* length */
@@ -618,7 +613,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   printf(gettext("Firmware is sent!
 "));
 
-  unsigned char buf[0x1ff];   /* buffer */
   /* wait until firmware is ready */
   sleep(1);
 
@@ -658,7 +652,6 @@ int first_config(usb_dev_handle *adsl_handle, int tmodem)
     len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_IN, value, 0x03, i, buf, 3);
     usleep(10000);
     if (len < 3)
-  unsigned char buf[0x1ff];   /* buffer */
       return -1;
   }
 
@@ -823,7 +816,6 @@ do
       fflush(stdout);
       before = last;
     }
-  unsigned char buf[0x1ff];   /* buffer */
   } 
   while (difftime(last, first) < 60);
   printf("

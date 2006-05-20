@@ -247,7 +247,6 @@ int
 send_sync_signal (usb_dev_handle * adsl_handle, int tmodem, unsigned char line )  
 {
   char buf[0x1ff];	/* buffer */
-  unsigned char buf[0x1ff];	/* buffer */
   long len;			/* length */
 //  int i;
   
@@ -343,7 +342,6 @@ send_sync_signal (usb_dev_handle * adsl_handle, int tmodem, unsigned char line )
 int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem)
 {
   char buf[0x1ff];	/* buffer */
-  unsigned char buf[0x1ff];	/* buffer */
   long len;			/* length */
 
   wprintw (infow, "[Sending DLS.");
@@ -365,7 +363,6 @@ int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem)
 int send_signal_30 (usb_dev_handle * adsl_handle, int tmodem)
 {
   char buf[0x1ff];	/* buffer */
-  unsigned char buf[0x1ff];	/* buffer */
   long len;			/* length */
 
   wprintw (infow, "[Sending 30 03 00.");
@@ -404,13 +401,11 @@ int check_modem (unsigned int vid, unsigned int pid)
 }
 
 int
-translate_buf (unsigned char buf[0x1ff], int len)
 translate_buf (char buf[0x1ff], int len)
 {
 
   int i;
 
-  switch (buf[0]) {
   switch (buf[0] & 0xff) {
   case 0x02:
     wprintw (infow, "[Line problem?]
@@ -571,7 +566,6 @@ main (int argc, char *argv[])
   struct usb_device *dev;
   struct usb_device *adsl_dev = NULL;
   usb_dev_handle *adsl_handle;
-  unsigned char buf[0x1ff];	/* buffer */
   char buf[0x1ff];	/* buffer */
   int len;
 
@@ -802,22 +796,18 @@ main (int argc, char *argv[])
 	  if ( show == 1 )
 	    wrefresh (rawinfow);
 	}
-	if (buf[0] >= 0xf1 && buf[0] <= 0xfc) {
 
 	if ( ( buf[0] & 0xff ) >= 0xf1 && ( buf[0] & 0xff ) <= 0xfc) {
-	  wmove (rawinfow, buf[0] - 0xf1, 0);
 	  wprintw (rawinfow, " ");
 	  wmove (rawinfow, ( buf[0] - 0xf1 ) & 0xff, 0);
 	  if ( show == 1 )
 	    wrefresh (rawinfow);
 	  wprintw (rawinfow, "---------------------------------------\r>");
-	    wprintw (rawinfow, "%02x", buf[i]);
 	  for (i = 0; i < len; i++) {
 	    wprintw (rawinfow, "%02x", buf[i] & 0xff );
 	    if ((i % 4 == 0) && (i != len))
 	      wprintw (rawinfow, " ");
 //                  printf("%02x", buf[i]);
-	  wmove (rawinfow, buf[0] - 0xf1, 0);
 	  }
 	  wmove (rawinfow, ( buf[0] - 0xf1 ) & 0xff, 0);
 	  if ( show == 1 )
