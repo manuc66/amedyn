@@ -787,7 +787,6 @@ main (int argc, char *argv[])
 	  wprintw (rawinfow, "---------------------------------------\r>");
 
 	  for (i = 0; i <= len; i++) {
-	    wprintw (rawinfow, "%02x", buf[i]);
 	    wprintw (rawinfow, "%02x", buf[i] & 0xff );
 	    if ((i % 4 == 0) && (i != len))
 	      wprintw (rawinfow, " ");
