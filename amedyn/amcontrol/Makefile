@@ -8,7 +8,6 @@ CC = gcc
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign-compare
 INCLUDES = -I../include
 LDFLAGS = -lusb -lncurses
-LDFLAGS = -lusb 
 ifndef RPM_BUILD_ROOT
 BIN_PATH = /usr/sbin
 EXE_FILES = amcontrol
@@ -36,8 +35,5 @@ debugt: amcontroldbgt
 #
 
 
-	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) -lcurses $^ -o $@
 amcontrol: amcontrol.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@
-	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) -lcurses -DDEBUG $^ -o $@
-	$(CC) $(CFLAGS) $(INCLUDES) $(LDFLAGS) -lcurses -DDEBUG -DDEBUG_TRANSFER $^ -o $@
