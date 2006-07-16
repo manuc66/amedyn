@@ -84,36 +84,6 @@
 /* translation files */
 #define TF_CODE "amload"
 
-/* modem internal characteristics */
-struct usb_modem_char {
-  unsigned int vid;  /* VendorID */
-  unsigned int pid;  /* ProductID */
-  char *firmfile;  /* firmware file name */
-  char *initfirmfile;  /* init firmware file name */
-  int datamax;  /* maximum data that we can send in a block */
-};
-struct usb_modem_char modem_char;
-
-/* info about modem */
-struct usb_modem_info {
-  int modem_status;
-  char firm_version[5];  /* firmware version */
-  char mac[6];  /* MAC address */
-  int down_bitrate;  /* download bitrate */
-  int up_bitrate;  /* upload bitrate */
-  int link_status;  /* link status */
-  int line_status;  /* line status */
-  int operational_mode;  /* operational mode */
-};
-struct usb_modem_info modem_info;
-
-/* adsl modes */
-const char *adsl_modes[] = {
- "ANSI",
- "G.DMT",
- "G.Lite"
-};
-
 extern struct options command_options;
 extern int check_modem(unsigned int vid, unsigned int pid);
 extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
@@ -185,9 +155,6 @@ int main(int argc, char *argv[])
             "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
-  /* reset command queries */
-  //memset(modem_cmd_state, 0, sizeof(modem_cmd_state));
-
 	    POPT_ARG_NONE, &no_claim_interface_1, 0,
             "Send line down signal before sync line.",  ""},
         { NULL,     '0',
