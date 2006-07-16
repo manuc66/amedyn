@@ -60,6 +60,8 @@
   03/12/2005 Sktt (Aurelio)
   Split amload.c. Now all funtions are in amfunctions.c  
 
+  16/07/2006 Sktt (Aurelio)
+  Add command-line options.
 */
 
 
@@ -167,6 +169,7 @@ int main(int argc, char *argv[])
         { "nocheck", '\0', POPT_ARG_NONE, &command_options.no_check_modem_before, 0,
             "Don't check modem before try to upload firmware.", ""},
         { "config",   'c', POPT_ARG_NONE, &config, 0,
+        { "firmware", 'f', POPT_ARG_NONE, &command_options.firmware, 0,
             "Upload firmware.", ""},
         { "sync",     's', POPT_ARG_NONE, &sync, 0,
         { "config",   'c', POPT_ARG_NONE, &command_options.config, 0,
@@ -182,7 +185,6 @@ int main(int argc, char *argv[])
             "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
-  
   /* reset command queries */
   //memset(modem_cmd_state, 0, sizeof(modem_cmd_state));
 
@@ -197,13 +199,17 @@ int main(int argc, char *argv[])
             "Don't claim interface 1. (Debug option)",  ""},
         { NULL,     '2',
 	    POPT_ARG_NONE, &command_options.no_claim_interface_2, 0,
-  printf(" 02/08/2004
-");
             "Don't claim interface 2. (Debug option)",  ""},
         POPT_AUTOHELP
         { NULL, 0, 0, NULL, 0 }
     };
 
+  optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
+
+  /* init locale */
+  setlocale(LC_ALL, "");
+  //if (file_exists("./locale")) 
+  //  bindtextdomain(TF_CODE, "./locale");  /* set directory for a domain (source code messages) */
   //else 
     bindtextdomain(TF_CODE, "/usr/share/locale");  /* set directory for a domain (source code messages) */
   textdomain(TF_CODE);  /* set domain */
@@ -232,26 +238,6 @@ int main(int argc, char *argv[])
     fprintf(stderr, "%s: %s
 ",
 	poptBadOption(optCon, POPT_BADOPTION_NOALIAS),
-  /* check parameters */
-/*
-  if (argc < 1)
-  {
-    printf(gettext("Usage:
-"));
-    printf(gettext("   %s [open_mode]
-"), argv[0]);
-    return -1;
-  }
-  if (argc > 1) {
-    open_mode = atoi(argv[1]);
-    if ((open_mode < 0) || (open_mode > 5)) {
-      printf(gettext("Error: Incorrect open mode
-"));
-      return -1;
-    }
-  }
-*/
-
 	poptStrerror(r));
 	poptFreeContext(optCon);
     return -1;
