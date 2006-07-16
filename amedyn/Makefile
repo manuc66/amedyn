@@ -46,10 +46,8 @@ all: clean compile
 
 #install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
 compile: userspace modules
-compile: AME_INIT AME_MODULE AME_CONTROL BRIDGED
 compile: AME_INIT AME_CONTROL
 
-install: AME_INIT_install AME_MODULE_install AME_SCRIPTS_install  AME_CONTROL_install BRIDGED_install
 userspace: AME_INIT AME_CONTROL
 install: AME_INIT_install AME_SCRIPTS_install  AME_CONTROL_install
 	make -C module install 
