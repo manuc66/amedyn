@@ -297,6 +297,7 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
   r = first_config(adsl_handle, tmodem); 
   if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
+  r = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
   if ( ! no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
   /* check if other program is using interfaces 0, 1, 2 */
     r = load_firmware(adsl_handle, tmodem); 
