@@ -137,6 +137,7 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 
   /* open mode */
   int open_mode = -1;
+
   /* type of modem */
   int tmodem = -1;
 
@@ -293,8 +294,15 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 
   /* connect to ADSL modem */
   if (usb_claim_interface(adsl_handle, 2) < 0)
-  r = load_firmware(adsl_handle, tmodem); 
-  r = first_config(adsl_handle, tmodem); 
+  adsl_handle = usb_open(adsl_dev);
+  if (adsl_handle == NULL)
+  {
+    printf(gettext("Error: Couldn't get device handle for ADSL modem
+"));
+    return -1;
+  }
+  /* set configuration */
+  if (usb_set_configuration(adsl_handle, 1) < 0)
   if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
   r = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
