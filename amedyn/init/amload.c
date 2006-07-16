@@ -120,6 +120,7 @@ extern int sync_line(usb_dev_handle *adsl_handle, int tmodem, int max_wait_line_
 extern int load_firmware(usb_dev_handle *adsl_handle, int tmodem);
 extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 
+int main(int argc, char *argv[])
 {
   poptContext optCon; /* context for parsing command-line options */
 
@@ -142,6 +143,42 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
   int tmodem = -1;
 
   /* buffer use to check if the modem are init yet.*/  
+  char buf[0x10];
+
+  /* Command-line options */ 
+  int no_check_modem_before=0;
+  int firmware=0;
+  int config=0;
+  int sync=0;
+  int max_wait_line_up=MAX_WAIT_LINE_UP;
+  int verbose=0;
+  command_options.linetype=0x15;
+  command_options.unsync_first=0;
+  int no_claim_interface_0=0;
+  int no_claim_interface_1=0;
+  int no_claim_interface_2=0;
+  command_options.no_claim_interface_0=0;
+  command_options.no_claim_interface_1=0;
+  command_options.no_claim_interface_2=0;
+        { "nocheck", '\0', POPT_ARG_NONE, &no_check_modem_before, 0,
+
+  struct poptOption optionsTable[] = {
+        { "firmware", 'f', POPT_ARG_NONE, &firmware, 0,
+        { "nocheck", '\0', POPT_ARG_NONE, &command_options.no_check_modem_before, 0,
+            "Don't check modem before try to upload firmware.", ""},
+        { "config",   'c', POPT_ARG_NONE, &config, 0,
+            "Upload firmware.", ""},
+        { "sync",     's', POPT_ARG_NONE, &sync, 0,
+        { "config",   'c', POPT_ARG_NONE, &command_options.config, 0,
+            "Initial config.",  ""},
+        { "time",     't', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &max_wait_line_up, 0,
+        { "sync",     's', POPT_ARG_NONE, &command_options.sync, 0,
+            "Sync line.",  ""},
+        { "verbose",  'v', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &verbose, 0,
+            "Verbose level.",  "[0..0]"},
+            "Time to wait until sync.",  ""},
+        { "verbose",  'v', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &command_options.verbose, 0,
+	    POPT_ARG_NONE, &no_claim_interface_0, 0,
             "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
@@ -162,6 +199,16 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 	    POPT_ARG_NONE, &command_options.no_claim_interface_2, 0,
   printf(" 02/08/2004
 ");
+            "Don't claim interface 2. (Debug option)",  ""},
+        POPT_AUTOHELP
+        { NULL, 0, 0, NULL, 0 }
+    };
+
+  //else 
+    bindtextdomain(TF_CODE, "/usr/share/locale");  /* set directory for a domain (source code messages) */
+  textdomain(TF_CODE);  /* set domain */
+
+  /* show program information */
   printf(gettext("Zyxel 630-11 & Asus AAM6000UG microcode upload program."));
   printf(" 16/07/2006
 ");
@@ -174,8 +221,7 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 ");
 
   if (argc <= 1)
-    fprintf(stderr, "WARNING: amload must be run with root privileges
-");
+  {
     poptPrintUsage(optCon, stderr, 0);
 	poptFreeContext(optCon);
     return -1;
@@ -274,7 +320,6 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 #if DEBUG
    printf(" bLength: 0x%02x
 ", adsl_dev->config->bLength);
-  if (usb_claim_interface(adsl_handle, 0) < 0)
    printf(" bDescriptorType: 0x%02x
 ", adsl_dev->config->bDescriptorType);
    printf(" wTotalLength: 0x%04x
@@ -285,7 +330,6 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 ", adsl_dev->config->bConfigurationValue);
    printf(" iConfiguration: 0x%02x
 ", adsl_dev->config->iConfiguration);
-  if (usb_claim_interface(adsl_handle, 1) < 0)
    printf(" bmAttributes: 0x%02x
 ", adsl_dev->config->bmAttributes);
    printf(" MaxPower: 0x%02x
@@ -293,7 +337,6 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
 #endif
 
   /* connect to ADSL modem */
-  if (usb_claim_interface(adsl_handle, 2) < 0)
   adsl_handle = usb_open(adsl_dev);
   if (adsl_handle == NULL)
   {
@@ -305,22 +348,33 @@ extern int send_line_down_signal (usb_dev_handle * adsl_handle, int tmodem);
   if (usb_set_configuration(adsl_handle, 1) < 0)
   if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
-  r = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
+    printf("Error: usb_set_configuration: %s
+", usb_strerror());
+    return -1;
+  }
+
   if ( ! no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
   /* check if other program is using interfaces 0, 1, 2 */
-    r = load_firmware(adsl_handle, tmodem); 
-    r = first_config(adsl_handle, tmodem); }
+  if ( ! command_options.no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
+  {
+    printf("Error: usb_claim_interface 0: %s
+", usb_strerror());
     return -1;
   if ( ! no_claim_interface_2 && usb_claim_interface(adsl_handle, 2) < 0)
   }
-
-  r = sync_line(adsl_handle, tmodem, MAX_WAIT_LINE_UP);
+  if ( ! command_options.no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
+  {
+    printf("Error: usb_claim_interface 1: %s
+", usb_strerror());
     return -1;
   }
   if ( ! command_options.no_claim_interface_2 && usb_claim_interface(adsl_handle, 2) < 0)
-  usb_release_interface(adsl_handle, 0);
-  usb_release_interface(adsl_handle, 1);
-  usb_release_interface(adsl_handle, 2);
+  {
+    printf("Error: usb_claim_interface 2: %s
+", usb_strerror());
+    return -1;
+  if ( firmware || config ) {
+  if ( ! no_check_modem_before )
   PDEBUG(gettext("Interface = %d
 "), adsl_handle->interface);
 

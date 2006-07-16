@@ -8,7 +8,6 @@ CC = gcc
 CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign-compare
 INCLUDES = -I../include
 LDFLAGS = -lusb -lpopt
-LDFLAGS = -lusb 
 ifndef RPM_BUILD_ROOT
 BIN_PATH = /usr/sbin
 EXE_FILES = amload amioctl amcheckline amsyncline
