@@ -55,7 +55,6 @@ endif
 
 else
 
-all: normal debug
 	KDIR := $(KERNEL_PATH)
 	PWD := $(shell pwd)
 
