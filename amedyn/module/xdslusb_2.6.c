@@ -1345,7 +1345,6 @@ static void udsl_usb_disconnect (struct usb_interface *intf)
 
 	wmb ();
 	instance->usb_dev = NULL;
-	shutdown_atm_dev (instance->atm_dev); /* frees instance, kills tasklets */
 
 	/* ATM finalize */
 	atm_dev_deregister (instance->atm_dev); /* frees instance, kills tasklets */
