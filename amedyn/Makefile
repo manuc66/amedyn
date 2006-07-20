@@ -46,10 +46,21 @@ all: clean compile
 
 #install: CX_INIT CX_FIRMWARE CX_MODULE CX_SCRIPTS BRIDGED CX_PANEL
 compile: userspace modules
-compile: AME_INIT AME_CONTROL
 
 userspace: AME_INIT AME_CONTROL
-install: AME_INIT_install AME_SCRIPTS_install  AME_CONTROL_install
+
+modules: AME_MODULE
+
+install: userspace_install module_install
+install: userspace_install modules_install
+
+userspace_install:
+	make -C init install        
+	make -C scripts        
+	make -C bridged install        
+	make -C amcontrol install        
+   
+module_install: module
 	make -C module install 
 
 AME_INIT: init
@@ -66,21 +77,6 @@ AME_SCRIPTS: scripts
 
 BRIDGED: bridged
 	cd bridged && make
-AME_INIT_install: init
-	cd init && make install
-
-AME_CONTROL_install:
-	cd amcontrol && make install
-
-AME_MODULE_install: module
-	cd module && make install
-
-AME_SCRIPTS_install: scripts
-	cd scripts && make
-
-BRIDGED_install: bridged
-	cd bridged && make install
-
 
 package: clean
 	cd .. && tar -zcvf ${TGZ_SRC_NAME} amedyn
