@@ -9,13 +9,14 @@ CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign
 INCLUDES = -I../include
 LDFLAGS = -lusb -lncurses
 ifndef RPM_BUILD_ROOT
-BIN_PATH = /usr/sbin
+RPM_BUILD_ROOT = /
+endif
+BIN_PATH = $(RPM_BUILD_ROOT)/usr/sbin
 EXE_FILES = amcontrol
 EXE_FILES_DEBUG = amcontroldbg amcontroldbgt
 LANGUAGES = es
 SHARE_PATH = $(RPM_BUILD_ROOT)/usr/share
-SHARE_PATH = /usr/share
-TMESG_PATH = /usr/share/locale
+TMESG_PATH = $(RPM_BUILD_ROOT)/usr/share/locale
 
 ifdef SIMULATE
 	CFLAGS += -DSIMULATE

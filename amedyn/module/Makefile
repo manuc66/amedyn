@@ -5,12 +5,15 @@
 ifndef DEST_KERNEL
 DEST_KERNEL = $(shell uname -r)
 endif
+ifndef DEST_KERNEL_MAIN
 DEST_KERNEL_MAIN = $(shell uname -r | cut -d'.' -f1-2)
 endif
 KERNEL_PATH = /lib/modules/$(DEST_KERNEL)/build
 #KERNEL_PATH = /usr/src/linux-2.6.0-0.test4.1.33
 ifndef RPM_BUILD_ROOT
-MODULE_PATH = /lib/modules/$(DEST_KERNEL)/kernel/drivers/usb
+RPM_BUILD_ROOT=/
+endif
+MODULE_PATH = $(RPM_BUILD_ROOT)/lib/modules/$(DEST_KERNEL)/kernel/drivers/usb
 # You need remove .config file from $(KERNEL_PATH) if you use CONFIG_PATH different of KERNEL_PATH or if you use CONFIG_NAME different of .config
 CONFIG_PATH = $(KERNEL_PATH)
 #CONFIG_PATH = /usr/src/linux-2.6.0-0.test4.1.33/configs

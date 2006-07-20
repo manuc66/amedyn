@@ -12,7 +12,9 @@ CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign
 INCLUDES = -idirafter$(KERNEL_PATH)/include
 LDFLAGS = -latm -lresolv
 ifndef RPM_BUILD_ROOT
-BIN_PATH = /usr/sbin
+RPM_BUILD_ROOT = /
+endif
+BIN_PATH = $(RPM_BUILD_ROOT)/usr/sbin
 EXE_FILES = br2684ctl
 
 all: program
@@ -34,7 +36,7 @@ install: install_program
 
 install_program: $(EXE_FILES)
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $(EXE_FILES) $(BIN_PATH)
+	install -m 755 $(EXE_FILES) $(BIN_PATH)
 
 uninstall:
 	for i in $(EXE_FILES); do \

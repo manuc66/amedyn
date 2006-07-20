@@ -2,14 +2,14 @@
 ## Makefile for Zyxel 630-11 & Asus AAM6000UG (install scripts)
 #
 ifndef RPM_BUILD_ROOT
-
-BIN_PATH = /usr/sbin
-CONFIG_PATH = /etc
+RPM_BUILD_ROOT=/
+endif
+BIN_PATH = $(RPM_BUILD_ROOT)/usr/sbin
+CONFIG_PATH = $(RPM_BUILD_ROOT)/etc
 CONFIG_FILE = amedyn
 SERVICE_FILE = amedyn
 SHARE_PATH = $(RPM_BUILD_ROOT)/usr/share
-SHARE_PATH = /usr/share
-TMESG_PATH = /usr/share/locale
+TMESG_PATH = $(RPM_BUILD_ROOT)àB/usr/share/locale
 LANG=
 #LANGUAGES = es ca
 LANGUAGES = es
@@ -26,8 +26,9 @@ install: generic config_file routed pppoa bridged pppoe
 
 generic: $(generic_scripts) 
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $^ $(BIN_PATH)
-	install -c -m 755 -p service/$(SERVICE_FILE) /etc/$(SERVICE_FILE).service
+	install -m 755 $^ $(BIN_PATH)
+	install -d $(CONFIG_PATH)
+	install -m 755 service/$(SERVICE_FILE) $(CONFIG_PATH)/$(SERVICE_FILE).service
 
 config_file: config/$(CONFIG_FILE)
 	if [ ! -f $(CONFIG_PATH)/$(CONFIG_FILE) ]; then \
@@ -37,19 +38,19 @@ config_file: config/$(CONFIG_FILE)
 
 routed: $(routed_scripts) 
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $^ $(BIN_PATH) 
+	install -m 755 $^ $(BIN_PATH) 
 
 pppoa: $(pppoa_scripts)
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $^ $(BIN_PATH)
+	install -m 755 $^ $(BIN_PATH)
 
 bridged: $(bridged_scripts)
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $^ $(BIN_PATH)
+	install -m 755 $^ $(BIN_PATH)
 
 pppoe: $(pppoe_scripts)
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $^ $(BIN_PATH)
+	install -m 755 $^ $(BIN_PATH)
 
 uninstall:
 	for i in $(all_scripts); do \

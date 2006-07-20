@@ -9,13 +9,14 @@ CFLAGS = -O2 -Wstrict-prototypes -fomit-frame-pointer -pipe -Wall -DLINUX -Wsign
 INCLUDES = -I../include
 LDFLAGS = -lusb -lpopt
 ifndef RPM_BUILD_ROOT
-BIN_PATH = /usr/sbin
+RPM_BUILD_ROOT= /
+endif
+BIN_PATH = $(RPM_BUILD_ROOT)/usr/sbin
 EXE_FILES = amload amioctl amcheckline amsyncline
 EXE_FILES_DEBUG = amloaddbg amloaddbgt
 LANGUAGES = es
 SHARE_PATH = $(RPM_BUILD_ROOT)/usr/share
-SHARE_PATH = /usr/share
-TMESG_PATH = /usr/share/locale
+TMESG_PATH = $(RPM_BUILD_ROOT)/usr/share/locale
 
 ifdef SIMULATE
 	CFLAGS += -DSIMULATE
@@ -63,7 +64,7 @@ install: install_program
 
 install_program: $(EXE_FILES)
 	install -d $(BIN_PATH)
-	install -c -m 755 -p $(EXE_FILES) $(BIN_PATH)
+	install -m 755 $(EXE_FILES) $(BIN_PATH)
 
 uninstall:
 	for i in $(EXE_FILES); do \
