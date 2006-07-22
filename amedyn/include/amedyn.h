@@ -74,6 +74,9 @@
 #define MODEM_UP    0x20
 
 #define LINE_UP 0x50
+#define LINE_YET_DOWN 0x60
+#define LINE_DOWN_OK 0x70:
+
 /* usb codes */
 #define VENDOR_REQUEST_OUT 0x40      /* Vendor specific requests, OUT direction */
 #define VENDOR_REQUEST_IN 0xC0       /* Vendor specific requets, IN direction */
