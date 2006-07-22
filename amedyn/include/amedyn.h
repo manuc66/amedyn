@@ -177,5 +177,21 @@ struct usb_modem_info
 };
 
 /* Command-line options */ 
+struct options {
+    int no_check_modem_before;
+    int firmware;
+    int config;
+    int sync;
+    int max_wait_line_up;
+    int verbose;
+    int linetype;
+    int unsync_first;
+    int linetype;
+
+    /* Debug command-line options */
+    int no_claim_interface_0;
+    int no_claim_interface_1;
+    int no_claim_interface_2;
+    };
 
 #endif /* _AMEDYN_H_ */

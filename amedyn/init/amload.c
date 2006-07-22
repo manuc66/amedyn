@@ -85,6 +85,7 @@
 #define TF_CODE "amload"
 
 extern struct options command_options;
+
 extern int check_modem(unsigned int vid, unsigned int pid);
 extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
 extern int first_config(usb_dev_handle *adsl_handle, int tmodem);
@@ -118,48 +119,38 @@ int main(int argc, char *argv[])
   char buf[0x10];
 
   /* Command-line options */ 
-  int no_check_modem_before=0;
-  int firmware=0;
-  int config=0;
-  int sync=0;
-  int max_wait_line_up=MAX_WAIT_LINE_UP;
-  int verbose=0;
+  command_options.no_check_modem_before=0;
+  command_options.firmware=0;
+  command_options.config=0;
+  command_options.sync=0;
+  command_options.max_wait_line_up=MAX_WAIT_LINE_UP;
+  command_options.verbose=0;
   command_options.linetype=0x15;
   command_options.unsync_first=0;
-  int no_claim_interface_0=0;
-  int no_claim_interface_1=0;
-  int no_claim_interface_2=0;
+
+  /* Debug command-line optios */
   command_options.no_claim_interface_0=0;
   command_options.no_claim_interface_1=0;
   command_options.no_claim_interface_2=0;
-        { "nocheck", '\0', POPT_ARG_NONE, &no_check_modem_before, 0,
 
   struct poptOption optionsTable[] = {
-        { "firmware", 'f', POPT_ARG_NONE, &firmware, 0,
         { "nocheck", '\0', POPT_ARG_NONE, &command_options.no_check_modem_before, 0,
             "Don't check modem before try to upload firmware.", ""},
-        { "config",   'c', POPT_ARG_NONE, &config, 0,
         { "firmware", 'f', POPT_ARG_NONE, &command_options.firmware, 0,
             "Upload firmware.", ""},
-        { "sync",     's', POPT_ARG_NONE, &sync, 0,
         { "config",   'c', POPT_ARG_NONE, &command_options.config, 0,
             "Initial config.",  ""},
-        { "time",     't', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &max_wait_line_up, 0,
         { "sync",     's', POPT_ARG_NONE, &command_options.sync, 0,
             "Sync line.",  ""},
-        { "verbose",  'v', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &verbose, 0,
-            "Verbose level.",  "[0..0]"},
+        { "time",     't', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &command_options.max_wait_line_up, 0,
             "Time to wait until sync.",  ""},
         { "verbose",  'v', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &command_options.verbose, 0,
-	    POPT_ARG_NONE, &no_claim_interface_0, 0,
             "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
-	    POPT_ARG_NONE, &no_claim_interface_1, 0,
             "Send line down signal before sync line.",  ""},
         { NULL,     '0',
 	    POPT_ARG_NONE, &command_options.no_claim_interface_0, 0,
-	    POPT_ARG_NONE, &no_claim_interface_2, 0,
             "Don't claim interface 0. (Debug option)",  ""},
         { NULL,     '1',
 	    POPT_ARG_NONE, &command_options.no_claim_interface_1, 0,
@@ -299,21 +290,18 @@ int main(int argc, char *argv[])
   }
   /* set configuration */
   if (usb_set_configuration(adsl_handle, 1) < 0)
-  if ( ! no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
     printf("Error: usb_set_configuration: %s
 ", usb_strerror());
     return -1;
   }
 
-  if ( ! no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
   /* check if other program is using interfaces 0, 1, 2 */
   if ( ! command_options.no_claim_interface_0 && usb_claim_interface(adsl_handle, 0) < 0)
   {
     printf("Error: usb_claim_interface 0: %s
 ", usb_strerror());
     return -1;
-  if ( ! no_claim_interface_2 && usb_claim_interface(adsl_handle, 2) < 0)
   }
   if ( ! command_options.no_claim_interface_1 && usb_claim_interface(adsl_handle, 1) < 0)
   {
@@ -326,36 +314,29 @@ int main(int argc, char *argv[])
     printf("Error: usb_claim_interface 2: %s
 ", usb_strerror());
     return -1;
-  if ( firmware || config ) {
-  if ( ! no_check_modem_before )
+  }
   PDEBUG(gettext("Interface = %d
 "), adsl_handle->interface);
 
   init_modem(tmodem, adsl_dev, open_mode); 
 
 /* Check if the modem is working yet */
-    if (firmware)
   if ( command_options.firmware || command_options.config ) {
   if ( ! command_options.no_check_modem_before )
-    if (config)
     r = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
   else
     r=-1;
   if (r < 0) {
     if (command_options.firmware) {
     if (command_options.firmware)
-  if (sync)
-    r = sync_line(adsl_handle, tmodem, max_wait_line_up);
+        r = load_firmware(adsl_handle, tmodem); 
 	if (r < 0)
     if (command_options.config)
         r = first_config(adsl_handle, tmodem); }
-  if ( ! no_claim_interface_0 )
 	if (r < 0)
   }
-  if ( ! no_claim_interface_1 )
   
   if (command_options.unsync_first) {
-  if ( ! no_claim_interface_2 )
   if (command_options.unsync_first)
     r = send_line_down_signal (adsl_handle, tmodem);
     if ( r < 0 )

@@ -91,6 +91,8 @@ struct usb_modem_char modem_char;
 struct usb_modem_info modem_info;
 
 /* command-line options */
+struct options command_options;
+
 /* check if a file exists */
 int file_exists(const char *filename)
 {
