@@ -718,12 +718,10 @@ do
       printf(".");
       fflush(stdout);
 #ifndef DEBUG
-	     && (len != 1 && (buf[0] & 0xff) != 0x50) 
       if (command_options.verbose == 0 ) {
         printf(".");
         fflush(stdout);
         }
-  while ((len != 1 && (buf[0] & 0xff) != 0x50)
 #endif
 	      before = last;
 	    }
