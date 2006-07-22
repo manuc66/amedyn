@@ -186,7 +186,6 @@ struct options {
     int verbose;
     int linetype;
     int unsync_first;
-    int linetype;
 
     /* Debug command-line options */
     int no_claim_interface_0;

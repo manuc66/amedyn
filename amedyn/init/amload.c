@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
             "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
+        { "unsync_first",  '\0', POPT_ARG_NONE, &command_options.unsync_first, 0,
             "Send line down signal before sync line.",  ""},
         { NULL,     '0',
 	    POPT_ARG_NONE, &command_options.no_claim_interface_0, 0,
@@ -335,6 +336,9 @@ int main(int argc, char *argv[])
     if (command_options.config)
         r = first_config(adsl_handle, tmodem); }
 	if (r < 0)
+  else
+    printf(gettext("Firmware loaded yet!
+"));
   }
   
   if (command_options.unsync_first) {
