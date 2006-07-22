@@ -53,34 +53,10 @@
 #define TF_CODE "amload"
 
 /* modem internal characteristics */
-struct usb_modem_char {
-  unsigned int vid;  /* VendorID */
-  unsigned int pid;  /* ProductID */
-  char *firmfile;  /* firmware file name */
-  char *initfirmfile;  /* init firmware file name */
-  int datamax;  /* maximum data that we can send in a block */
-};
 struct usb_modem_char modem_char;
 
 /* info about modem */
-struct usb_modem_info {
-  int modem_status;
-  char firm_version[5];  /* firmware version */
-  char mac[6];  /* MAC address */
-  int down_bitrate;  /* download bitrate */
-  int up_bitrate;  /* upload bitrate */
-  int link_status;  /* link status */
-  int line_status;  /* line status */
-  int operational_mode;  /* operational mode */
-};
 struct usb_modem_info modem_info;
-
-/* adsl modes */
-const char *adsl_modes[] = {
- "ANSI",
- "G.DMT",
- "G.Lite"
-};
 
 extern int check_modem(unsigned int vid, unsigned int pid);
 extern void init_modem(unsigned int tmodem, struct usb_device *adsl_dev, int open_mode);
