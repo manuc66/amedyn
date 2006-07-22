@@ -336,7 +336,6 @@ int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   /* set AFE value, R_Function_Code = 0x15 (adjust Alcatel DSP for our configuration) */
   /* 0x1fd in CTRLE protocol */
   /* 0x15 = analog line, 0x11 ISDN line */
-  buf[0] = 0x15;
   buf[0] = command_options.linetype & 0xff;
   if (command_options.verbose == 1)
     printf ("[0x%x]", buf[0]&0xff);
