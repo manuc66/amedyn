@@ -333,11 +333,14 @@ int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   long len;     /* length */
 
   if (command_options.verbose == 1)
+    printf ("S");
+
   /* set AFE value, R_Function_Code = 0x15 (adjust Alcatel DSP for our configuration) */
   /* 0x1fd in CTRLE protocol */
   /* 0x15 = analog line, 0x11 ISDN line */
   buf[0] = command_options.linetype & 0xff;
   if (command_options.verbose == 1)
+  if (command_options.verbose == 2)
     printf ("[0x%x]", buf[0]&0xff);
   len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x1fd, buf, 1);
   if (len < 0)
@@ -685,8 +688,9 @@ do
     memset(buf, 0, 0x10);
     len = usb_bulk_read(adsl_handle, USB_IN_INFO, buf, 0x10, DATA_TIMEOUT);
     if (len < 0)
-      if (len > 0)
-        dump(buf, len, 16);
+      printf(gettext("Error retrieving info!
+"));
+    else {
       PDEBUG(gettext("%li bytes readed:
 "), len);
 #if DEBUG_TRANSFER
@@ -694,15 +698,21 @@ do
         if (len > 0)
             dump(buf, len, 16);
 #endif
-/*		      if (modem_info.modem_status == MODEM_UP)
-			printf ("@");
-		      if (modem_info.modem_status == MODEM_DOWN)
-			printf ("#");
-		      if (modem_info.modem_status == MODEM_WAIT)
-			printf ("_");
-		      if (modem_info.modem_status == MODEM_INIT)
-			printf ("-");
- */
+
+		  if ((buf[0] & 0xff) == 0x01)
+		    {
+		      modem_info.modem_status = buf[1] & 0xff;
+              if (command_options.verbose == 1 ) {
+		        switch (modem_info.modem_status) {
+                    case MODEM_UP:
+			            printf ("@");
+                        continue;
+		            case MODEM_DOWN:
+			            printf ("#");
+                        continue;
+		            case MODEM_WAIT:
+			            printf ("_");
+                        continue;
 		            case MODEM_INIT:
                         printf ("-");
                         continue;
@@ -716,8 +726,8 @@ do
  
 
 
-      printf(".");
-      fflush(stdout);
+  if (difftime (time (&last), before) > 1)
+	    {
 #ifndef DEBUG
       if (command_options.verbose == 0 ) {
         printf(".");
