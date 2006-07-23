@@ -340,7 +340,6 @@ int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   /* 0x15 = analog line, 0x11 ISDN line */
   buf[0] = command_options.linetype & 0xff;
   if (command_options.verbose == 1)
-  if (command_options.verbose == 2)
     printf ("[0x%x]", buf[0]&0xff);
   len = transfer_ctrl_msg(adsl_handle, VENDOR_REQUEST_OUT, 0x06, 0x03, 0x1fd, buf, 1);
   if (len < 0)
