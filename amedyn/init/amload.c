@@ -146,7 +146,6 @@ int main(int argc, char *argv[])
             "Time to wait until sync.",  ""},
         { "verbose",  'v', POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT, &command_options.verbose, 0,
             "Verbose level.",  "[0..3]"},
-            "Verbose level.",  "[0..1]"},
         { "linetype",  '\0', POPT_ARG_INT, &command_options.linetype, 0,
             "Set phone line type code. (default: 0x15)",  "0x11 | 0x15"},
         { "unsync_first",  '\0', POPT_ARG_NONE, &command_options.unsync_first, 0,
