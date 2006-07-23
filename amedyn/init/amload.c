@@ -211,7 +211,6 @@ int main(int argc, char *argv[])
   * 2 - umask to prevent critical data being read from log file
   */
   if(geteuid() != 0) {
-    poptPrintUsage(optCon, stderr, 0);
     fprintf(stderr, "WARNING: amload must be run with root privileges
 
 ");
