@@ -49,7 +49,6 @@ remove_module
 # Load firmware
 if [ "$DRIVER_MODE" == "1" -o "$DRIVER_MODE" == "3" ]; then
     echo $">>> Loading firmware..."
-    amload -fcs || exit 1
     amload -fcs --linetype $LINE_TYPE || exit 1
     amload $LOADPRMS || exit 1
 fi
