@@ -465,36 +465,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
 
   /* clear endpoints */
   clear_endpoints(adsl_handle, 1);
-/*
-  fseek(soft, 0L, SEEK_SET);
-  len = fread(buf, 1, 5, soft);
-  if (len <= 0)
-  {
-    printf(gettext("Error: No bytes to read from file %s
-"), modem_char.firmfile);
-    return -1;
-  }
-  if (len != 5)
-  {
-    printf(gettext("Error: I can't read initial 5 bytes from file %s
-"), filename);
-    return -1;
-  }
-*/
-  /* check initial bytes */
-/*
-  PDEBUG(gettext("Initial bytes from file %s:
-"), filename);
-#if DEBUG
-  dump(buf, 5, 5);
-#endif
-  if (buf[0] != FIRMBYTE1 || buf[1] != FIRMBYTE2 || buf[2] != FIRMBYTE3 || buf[3] != FIRMBYTE4 || buf[4] != FIRMBYTE5) {
-    printf(gettext("Error: Maybe file %s isn't Conexant firmware, contact with author of this program
-"), filename);
-    return -1;
-  }
-*/
-
 
   /**************/
   /* initialize */
