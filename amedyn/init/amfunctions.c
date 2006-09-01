@@ -779,33 +779,6 @@ do
   }
   else
   {
-/*
-#ifdef DEBUG
-  printf(gettext("Waiting to receive first ATM cells...
-"));
-  time(&first); before = first;
-  do {
-    len = usb_bulk_read(adsl_handle, USB_IN_DATA, buf, sizeof(buf), DATA_TIMEOUT);
-    if (len > 0)  {
-      printf("
-");
-      printf(gettext("ATM cells received:
-"));
-      dump(buf, len, 16);
-      return 0;
-    }
-    if (difftime(time(&last), before) > 1) {
-      printf(".");
-      fflush(stdout);
-      before = last;
-    }
-  } 
-  while (difftime(last, first) < 60);
-  printf("
-");
-#endif
-*/
-
     printf(gettext("ADSL line is down
 "));
     return -1;
