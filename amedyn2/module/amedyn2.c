@@ -272,7 +272,6 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 	if (jump_to_address(instance, 0x00000000))
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 	ret = usb_bulk_msg (usb_dev, usb_rcvbulkpipe(usb_dev, ENDPOINT_FIRMWARE_IN), buf, 0x1ff, NULL,  DATA_TIMEOUT);
-		dbg("amedyn_upload_firmware: read bufconf failed (%d)!", ret);
 		}
 	} while (offset < fw1->size );
 
