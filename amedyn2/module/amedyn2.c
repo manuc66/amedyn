@@ -223,7 +223,6 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 				     const struct firmware *fw1,
 				     const struct firmware *fw2)
 {
-	unsigned char buf[0x1ff];
 	unsigned char *buffer;
 	struct usbatm_data *usbatm = instance->usbatm;
 	struct usb_interface *intf;
@@ -252,8 +251,7 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 ", __func__);
 		goto out_free;
 	}
-		memcpy(buf, fw1->data + offset, thislen);
-		if (send_block(instance, offset, buf, thislen))
+	
 	usb_clear_halt(usb_dev, usb_sndbulkpipe(usb_dev, ENDPOINT_FIRMWARE));
 	usb_clear_halt(usb_dev, usb_rcvbulkpipe(usb_dev, ENDPOINT_FIRMWARE_IN));
 
@@ -271,13 +269,11 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 	if (jump_to_address(instance, 0x00000000))
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
-	ret = usb_bulk_msg (usb_dev, usb_rcvbulkpipe(usb_dev, ENDPOINT_FIRMWARE_IN), buf, 0x1ff, NULL,  DATA_TIMEOUT);
 		}
 	} while (offset < fw1->size );
 
 	dbg("amedyn_upload_firmware: Init load");
 
-	memcpy(instance->bufconf, buf+0xb9, 8);
 	if (usb_bulk_msg (usb_dev, usb_sndbulkpipe(usb_dev, ENDPOINT_FIRMWARE),
 		    jump_to_address_0x00000000, 9, NULL,  DATA_TIMEOUT))
 		goto out_free;
@@ -287,8 +283,7 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 	if (ret < 0) {
 		dbg("amedyn_upload_firmware: read bufconf failed (%d)!", ret);
 		goto out_free;
-		memcpy(buf, fw2->data + offset, thislen);
-		if (send_block(instance, offset, buf, thislen))
+	}
 	memcpy(instance->bufconf, buffer+0xb9, 8);
 
 	dbg("amedyn_upload_firmware: Read bufconf OK");
