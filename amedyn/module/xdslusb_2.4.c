@@ -133,6 +133,7 @@ static const char udsl_driver_name [] = "xdslusb";
 #define AME_VENDORID3		        0x0b05  /* Vendor = Asustek */
 #define AME_PRODUCTID3		        0x6206  /* Product = AAM6000UG with Alcatel chipset */
 #define AME_VENDORID4		        0x1767  /* Vendor = */
+#define AME_PRODUCTID4		        0x0005  /* Product = */
 
 		
 
@@ -1090,6 +1091,7 @@ static int udsl_usb_check_modem(unsigned int vid, unsigned int pid, unsigned int
 		return UDSL_MODEM_TYPE1;
 
 	else if (vid == AME_VENDORID4 && pid == AME_PRODUCTID4 && cl == USB_CLASS_VENDOR_SPEC && ifn == 1)
+		return UDSL_MODEM_TYPE1;
 
 	return -1;
 }

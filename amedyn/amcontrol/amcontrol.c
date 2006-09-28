@@ -294,6 +294,9 @@ int check_modem (unsigned int vid, unsigned int pid)
     return 2;
 
   /* Vendor = Mediacom Europe?, Product = DynaMiTe USB Modem */
+  if (vid == 0x1767 && pid == 0x0005)
+    return 1;
+
 //  if (vid == 0x0572 && pid == 0xcafe)
 //    return 2;
 
