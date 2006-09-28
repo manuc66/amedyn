@@ -56,6 +56,7 @@ static const char amedyn_driver_name[] = "amedyn2";
 #define AME_PRODUCTID2		        0xa5a5  /* Product = 630-11 & 630-13 */
 #define AME_VENDORID3		        0x0b05  /* Vendor = Asustek */
 #define AME_PRODUCTID3		        0x6206  /* Product = AAM6000UG with Alcatel chipset */
+#define AME_VENDORID4		        0x1767  /* Vendor =  */
 #define AME_PRODUCTID4		        0x0005  /* Product = */
 
 #define CTRL_TIMEOUT 2000	/* milliseconds */
@@ -858,7 +859,7 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 			usb_err(usbatm, "%s: setting interface to %2d failed (%d)!
 ", __func__, DEFAULT_BULK_ALTSETTING, ret);
 			}
-	if (usb_dev->descriptor.idProduct == AME_PRODUCTID2) {
+		instance->altsetting = DEFAULT_BULK_ALTSETTING;
 	if (!instance->altsetting)
 		instance->altsetting = use_isoc ? DEFAULT_ISOC_ALTSETTING : DEFAULT_BULK_ALTSETTING;
 
