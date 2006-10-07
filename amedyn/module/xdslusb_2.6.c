@@ -306,7 +306,6 @@ static void udsl_usb_disconnect (struct usb_interface *intf);
 static int udsl_usb_ioctl (struct usb_interface *intf, unsigned int code, void *user_data);
 
 static struct usb_driver udsl_usb_driver = {
-	.owner =	THIS_MODULE,
 	.name =		udsl_driver_name,
 	.probe =	udsl_usb_probe,
 	.disconnect =	udsl_usb_disconnect,
