@@ -52,7 +52,6 @@ userspace: AME_INIT AME_CONTROL
 modules: AME_MODULE
 
 install: userspace_install module_install
-install: userspace_install modules_install
 
 userspace_install:
 	make -C init install        
