@@ -8,7 +8,6 @@ TEXTDOMAIN=`basename $0`
 . /etc/amedyn
 
 if [ "$RESYNC" = "1" ] && [ "$1" != "amline" ] ; then
-if [ "$RESYNC" -eq 1 ] && [ "$1" != "amline" ] ; then
     killall -g amline.sh 
 fi
 

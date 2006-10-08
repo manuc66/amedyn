@@ -42,7 +42,6 @@ else
       fi
     fi
   fi
-  if [ "$RESYNC" -eq 1 ]; then
   if [ "$RESYNC" = "1" ]; then
       amline.sh&
   fi
