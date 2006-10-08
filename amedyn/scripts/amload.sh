@@ -40,7 +40,6 @@ mt_new=`mount -t usbfs`
 if [ "$mt_old" = "" ] && [ "$mt_new" = "" ]; then
   echo $">>> Mounting USB file system..."
   mount -t usbfs usbfs /proc/bus/usb || mount -t usbdevfs none /proc/bus/usb
-  mount -t usbfs usbfs /proc/bus/usb || mount -t usbdevfs none /proc/bus/usb || exit 1
   echo
 fi
 
