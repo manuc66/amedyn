@@ -37,6 +37,11 @@ if [ "$1" = "1" ]; then
             echo $"Launching generic driver xusbatm..."
             MODULE_RUN="xusbatm vendor=$VENDOR product=$PRODUCT rx_endpoint=$RX_ENDPOINT tx_endpoint=$TX_ENDPOINT rx_altsetting=$RX_ALTSETTING tx_altsetting=$TX_ALTSETTING"
             ;;
+	*)
+	    # unknown value:
+	    echo $"DRIVER_MODE: Unknown value."
+	    echo $"Check /etc/amedyn"
+	    exit 1
 	    ;;
     esac
    
