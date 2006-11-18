@@ -1140,10 +1140,6 @@ static int usbatm_do_heavy_init(void *arg)
 	mutex_unlock(&instance->serialize);
 
 	complete_and_exit(&instance->thread_exited, ret);
-	mutex_lock(&instance->serialize);
-	instance->thread_pid = ret;
-	mutex_unlock(&instance->serialize);
-
 }
 
 static int usbatm_heavy_init(struct usbatm_data *instance)
