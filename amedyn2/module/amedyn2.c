@@ -775,7 +775,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	}
 
 	if (!(data_intf = usb_ifnum_to_if(usb_dev, INTERFACE_DATA))) {
-	instance = kmalloc(sizeof(*instance), GFP_KERNEL);
 		usb_err(usbatm, "%s: data interface not found!
 ", __func__);
 		return -ENODEV;
@@ -784,8 +783,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	/* claim all interfaces */
 
 	for (i=0; i < num_interfaces; i++) {
-	memset(instance, 0, sizeof(struct amedyn_instance_data));
-
 		cur_intf = usb_ifnum_to_if(usb_dev, i);
 
 		if ((i != ifnum) && cur_intf) {
