@@ -173,7 +173,6 @@ struct usbatm_data {
 
 	struct kref refcount;
 	struct mutex serialize;
-	struct semaphore serialize;
 	int disconnected;
 
 	/* heavy init */
