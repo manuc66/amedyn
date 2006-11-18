@@ -1155,7 +1155,6 @@ static int usbatm_heavy_init(struct usbatm_data *instance)
 		usb_err(instance, "%s: failed to create kernel_thread (%d)!
 ", __func__, ret);
 		return ret;
-static inline void usbatm_init_channel(struct usbatm_channel *channel)
 	}
 
 	wait_for_completion(&instance->thread_started);
