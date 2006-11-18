@@ -232,7 +232,6 @@ static u16 inline crc10(u16 init, u8 *data, int len)
 
 /***********
 **  urbs  **
-static inline struct urb *usbatm_pop_urb(struct usbatm_channel *channel)
 ************/
 
 static struct urb *usbatm_pop_urb(struct usbatm_channel *channel)
@@ -250,7 +249,6 @@ static struct urb *usbatm_pop_urb(struct usbatm_channel *channel)
 	spin_unlock_irq(&channel->lock);
 
 	return urb;
-static inline int usbatm_submit_urb(struct urb *urb)
 }
 
 static int usbatm_submit_urb(struct urb *urb)
@@ -928,7 +926,6 @@ static int usbatm_atm_open(struct atm_vcc *vcc)
 ", __func__, vpi, vci);
 
 	/* only support AAL5 */
-	down(&instance->serialize);	/* vs self, usbatm_atm_close, usbatm_usb_disconnect */
 	if ((vcc->qos.aal != ATM_AAL5)) {
 		atm_warn(instance, "%s: unsupported ATM type %d!
 ", __func__, vcc->qos.aal);
@@ -979,7 +976,6 @@ static int usbatm_atm_open(struct atm_vcc *vcc)
 	}
 
 	vcc->dev_data = new;
-	up(&instance->serialize);
 
 	tasklet_disable(&instance->rx_channel.tasklet);
 	instance->cached_vcc = new;
@@ -988,7 +984,6 @@ static int usbatm_atm_open(struct atm_vcc *vcc)
 	list_add(&new->list, &instance->vcc_list);
 	tasklet_enable(&instance->rx_channel.tasklet);
 
-	up(&instance->serialize);
 	set_bit(ATM_VF_ADDR, &vcc->flags);
 	set_bit(ATM_VF_PARTIAL, &vcc->flags);
 	set_bit(ATM_VF_READY, &vcc->flags);
@@ -1011,7 +1006,6 @@ static void usbatm_atm_close(struct atm_vcc *vcc)
 	struct usbatm_data *instance = vcc->dev->dev_data;
 	struct usbatm_vcc_data *vcc_data = vcc->dev_data;
 
-	down(&instance->serialize);	/* vs self, usbatm_atm_open, usbatm_usb_disconnect */
 	if (!instance || !vcc_data) {
 		dbg("%s: NULL data!", __func__);
 		return;
@@ -1037,7 +1031,6 @@ static void usbatm_atm_close(struct atm_vcc *vcc)
 	list_del(&vcc_data->list);
 	tasklet_enable(&instance->rx_channel.tasklet);
 
-	up(&instance->serialize);
 	kfree_skb(vcc_data->sarb);
 	vcc_data->sarb = NULL;
 
@@ -1131,10 +1124,8 @@ static int usbatm_atm_init(struct usbatm_data *instance)
 	instance->thread_pid = get_current()->pid;
 static int usbatm_do_heavy_init(void *arg)
 {
-	down(&instance->serialize);
 	struct usbatm_data *instance = arg;
 	int ret;
-	up(&instance->serialize);
 
 	daemonize(instance->driver->driver_name);
 	allow_signal(SIGTERM);
@@ -1149,10 +1140,8 @@ static int usbatm_do_heavy_init(void *arg)
 
 	mutex_lock(&instance->serialize);
 	instance->thread_pid = -1;
-	down(&instance->serialize);
 	mutex_unlock(&instance->serialize);
 
-	up(&instance->serialize);
 	complete_and_exit(&instance->thread_exited, ret);
 	mutex_lock(&instance->serialize);
 	instance->thread_pid = ret;
@@ -1239,7 +1228,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 	buf += i;
 	length -= i;
 
-	init_MUTEX(&instance->serialize);
 	if (length <= 0 || (i = usb_make_path(usb_dev, buf, length)) < 0)
 		goto bind;
 
@@ -1409,22 +1397,18 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 
 	return error;
 }
-	down(&instance->serialize);
 EXPORT_SYMBOL_GPL(usbatm_usb_probe);
 
 void usbatm_usb_disconnect(struct usb_interface *intf)
 {
-	up(&instance->serialize);
 	struct device *dev = &intf->dev;
 	struct usbatm_data *instance = usb_get_intfdata(intf);
 	struct usbatm_vcc_data *vcc_data;
 	int i;
-	down(&instance->serialize);
 
 	dev_dbg(dev, "%s entered
 ", __func__);
 
-	up(&instance->serialize);
 	if (!instance) {
 		dev_dbg(dev, "%s: NULL instance!
 ", __func__);
