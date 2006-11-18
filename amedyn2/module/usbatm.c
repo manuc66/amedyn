@@ -1458,11 +1458,6 @@ void usbatm_usb_disconnect(struct usb_interface *intf)
 	if (instance->atm_dev)
 		atm_dev_deregister(instance->atm_dev);
 
-	if (sizeof(struct usbatm_control) > sizeof(((struct sk_buff *) 0)->cb)) {
-		printk(KERN_ERR "%s unusable with this kernel!
-", usbatm_driver_name);
-		return -EIO;
-	}
 	usbatm_put_instance(instance);	/* taken in usbatm_usb_probe */
 }
 EXPORT_SYMBOL_GPL(usbatm_usb_disconnect);
