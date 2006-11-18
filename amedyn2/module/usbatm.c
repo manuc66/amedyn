@@ -943,7 +943,6 @@ static int usbatm_atm_open(struct atm_vcc *vcc)
 ", __func__);
 		ret = -ENODEV;
 		goto fail;
-	if (!(new = kmalloc(sizeof(struct usbatm_vcc_data), GFP_KERNEL))) {
 	}
 
 	if (usbatm_find_vcc(instance, vpi, vci)) {
@@ -1180,7 +1179,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 	struct usbatm_data *instance;
 	char *buf;
 	int error = -ENOMEM;
-	instance = kmalloc(sizeof(*instance) + sizeof(struct urb *) * (num_rcv_urbs + num_snd_urbs), GFP_KERNEL);
 	int i, length;
 	unsigned int maxpacket, num_packets;
 
@@ -1306,7 +1304,6 @@ int usbatm_usb_probe(struct usb_interface *intf, const struct usb_device_id *id,
 
 		UDSL_ASSERT(!usb_pipeisoc(channel->endpoint) || usb_pipein(channel->endpoint));
 
-		buffer = kmalloc(channel->buf_size, GFP_KERNEL);
 		urb = usb_alloc_urb(iso_packets, GFP_KERNEL);
 		if (!urb) {
 			dev_err(dev, "%s: no memory for urb %d!
