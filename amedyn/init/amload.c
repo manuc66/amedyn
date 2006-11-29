@@ -328,12 +328,15 @@ int main(int argc, char *argv[])
     r=-1;
   if (r < 0) {
     if (command_options.firmware) {
-    if (command_options.firmware)
         r = load_firmware(adsl_handle, tmodem); 
 	if (r < 0)
-    if (command_options.config)
+	    return r;
+	}
+    if (command_options.config) {
         r = first_config(adsl_handle, tmodem); }
 	if (r < 0)
+	    return r;
+	}
   else
     printf(gettext("Firmware loaded yet!
 "));
@@ -343,10 +346,14 @@ int main(int argc, char *argv[])
   if (command_options.unsync_first)
     r = send_line_down_signal (adsl_handle, tmodem);
     if ( r < 0 )
+
+  if (command_options.sync) {
   if ( r < 0 )
     return r;
 
   if (command_options.sync)
+    r = sync_line(adsl_handle, tmodem, command_options.max_wait_line_up);
+    if ( r < 0 )
 
   if ( r < 0 )
     return r;
