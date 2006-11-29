@@ -343,20 +343,16 @@ int main(int argc, char *argv[])
   }
   
   if (command_options.unsync_first) {
-  if (command_options.unsync_first)
     r = send_line_down_signal (adsl_handle, tmodem);
     if ( r < 0 )
+	return r;
+    }
 
   if (command_options.sync) {
-  if ( r < 0 )
-    return r;
-
-  if (command_options.sync)
     r = sync_line(adsl_handle, tmodem, command_options.max_wait_line_up);
     if ( r < 0 )
-
-  if ( r < 0 )
-    return r;
+	return r;
+    }
 
   PDEBUG(gettext("Releasing interface...
 "));
