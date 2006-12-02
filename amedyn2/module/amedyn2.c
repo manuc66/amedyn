@@ -153,29 +153,6 @@ static int amedyn_line_down_signal (struct amedyn_instance_data *instance)
 	return 0;
 }
 
-int jump_to_address(struct amedyn_instance_data *instance, unsigned int place)
-{
-	struct usb_device *dev = instance->usbatm->usb_dev;
-	unsigned char buf[6];  /* buffer */
-
-	buf[0] = 0x08; // Command (= set base address)
-	buf[1] = 0x04; // Length (= 4 bytes)
-	// Value (base address = place)
-	buf[2] = (place >> 24) & 0xff;
-	buf[3] = (place >> 16) & 0xff;
-	buf[4] = (place >> 8) & 0xff;
-	buf[5] = place & 0xff;
-	if (usb_bulk_msg (dev, usb_sndbulkpipe(dev, ENDPOINT_FIRMWARE), buf, 6, NULL,  DATA_TIMEOUT))
-		return -1;
-	buf[0] = 0x00;  // Command (= jump?)
-	buf[1] = 0x01;  // Length (= 1 byte)
-	buf[2] = 0x14;  // Value (= jump to base address)
-	if (usb_bulk_msg (dev, usb_sndbulkpipe(dev, ENDPOINT_FIRMWARE), buf, 3, NULL,  DATA_TIMEOUT))
-		return -1;
-	return 0;
-}
-
-/* From userspace tool */
 /***************
 **  firmware  **
 ***************/
@@ -229,6 +206,17 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 	struct usb_interface *intf;
 	struct usb_device *usb_dev = usbatm->usb_dev;
 	unsigned char *buf = instance->scratch_buffer;
+	
+	int ret = 0;
+	int offset;
+	char value;  /* returned byte */
+	int i;
+
+	/*
+	The old function jump_to_address was never use with a address other
+	than 0x00000000.
+	The Windows driver use two transfers. One to set the base address and
+	other to send the jump to base address command, but it can be send as a
 	single transfer. Probably it can be send with the firmware too, as the
 	speedtch.c driver do.
 	*/
@@ -268,7 +256,7 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 		ret = usb_bulk_msg (usb_dev, usb_sndbulkpipe(usb_dev, ENDPOINT_FIRMWARE), buf, 3, NULL,  DATA_TIMEOUT);
 		if (ret < 0) {
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
-	if (jump_to_address(instance, 0x00000000))
+			goto out_free;
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 		}
 	} while (offset < fw1->size );
@@ -301,11 +289,10 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 		buf[0] = 0x40; buf[1] = 0x01; buf[2] = 0x12;
 		ret = usb_bulk_msg (usb_dev, usb_sndbulkpipe(usb_dev, ENDPOINT_FIRMWARE), buf, 3, NULL,  DATA_TIMEOUT);
 		if (ret < 0) {
-	if (jump_to_address(instance, 0x00000000))
+			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 			goto out_free;
 		}
 	} while (offset < fw2->size );
-	msleep(2000);
 
 	dbg("amedyn_upload_firmware: Firmware load");
 
