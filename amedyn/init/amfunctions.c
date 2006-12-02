@@ -304,28 +304,6 @@ int send_block(usb_dev_handle *adsl_handle, int place, char *bufin, int len)
   return 0;
 }
 
-/* start code execution at specified address */
-int jump_to_address(usb_dev_handle *adsl_handle, unsigned int place)
-{
-  char buf[6];  /* buffer */
-
-  buf[0] = 0x08; // Command (= set base address)
-  buf[1] = 0x04; // Length (= 4 bytes)
-  // Value (base address = place)
-  buf[2] = (place >> 24) & 0xff;
-  buf[3] = (place >> 16) & 0xff;
-  buf[4] = (place >> 8) & 0xff;
-  buf[5] = place & 0xff;
-  if (send_bulk(adsl_handle, USB_OUT_FIRM, buf, 1, 6))
-    return -1;
-  buf[0] = 0x00;  // Command (= jump?)
-  buf[1] = 0x01;  // Length (= 1 byte)
-  buf[2] = 0x14;  // Value (= jump to base address)
-  if (send_bulk(adsl_handle, USB_OUT_FIRM, buf, 1, 3))
-    return -1;
-  return 0;
-}
-
 /* Say modem sync line */
 int send_cmds_sync (usb_dev_handle *adsl_handle, int tmodem)
   {
@@ -462,6 +440,17 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   char bufconf[8];  /* buffer to save config bytes */
 
   /*
+    The old funtion jump_to_address was never use with a address other than
+    0x0000.
+    The Windows driver use two transfers. One to set the base address and other
+    to send the jump to base address command, but it can be send as a single
+    transfer. Probably it can be send with the firmware too, as the speedtch.c
+    driver do.
+  */
+
+  char jump_to_address_0x0000[9] =
+    {0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x14} ;
+
 
   /* clear endpoints */
   clear_endpoints(adsl_handle, 1);
@@ -507,7 +496,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   fclose(soft);
 
   if (send_bulk(adsl_handle, USB_OUT_FIRM, jump_to_address_0x0000, 1, 9))
-  if (jump_to_address(adsl_handle, 0x00000000))
     return -1;
 
   printf(gettext("Init firmware is sent!
@@ -555,7 +543,6 @@ int load_firmware(usb_dev_handle *adsl_handle, int tmodem)
   fclose(soft);
 
   if (send_bulk(adsl_handle, USB_OUT_FIRM, jump_to_address_0x0000, 1, 9))
-  if (jump_to_address(adsl_handle, 0x00000000))
     return -1;
 
   printf(gettext("Firmware is sent!
