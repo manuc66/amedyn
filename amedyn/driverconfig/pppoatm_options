@@ -1,0 +1,72 @@
+lock
+
+#
+# If something goes wrong try uncommenting this
+#
+debug
+kdebug 1
+
+#
+# Makes this ppp link the default inet route
+# (route -n to check it)
+#
+defaultroute
+
+#
+# We don't need a default ip
+#
+noipdefault
+
+#
+# Asks your ISP for its DNS ip
+# (look at the /etc/ppp/resolv.conf)
+#
+usepeerdns
+
+noauth
+
+sync
+
+#
+# We don't want to negociate compression schemes at all
+#
+#noaccomp
+#nopcomp
+noccp
+novj
+
+holdoff 4
+
+#
+# Makes pppd "dial again" when the connection is lost
+#
+persist
+
+#
+# pppd will try to connect "maxfail"(0=all-the-time) times and wait "holdoff" seconds
+# between each try.
+#
+holdoff 4
+maxfail 0
+
+
+passive
+asyncmap 0
+lcp-echo-interval 2
+lcp-echo-failure 7
+
+#
+# pppd will try to connect "maxfail" times and wait "holdoff" seconds
+# between each try.
+#
+holdoff 4
+maxfail 25
+
+name user_name@provider
+user user_name@provider
+
+#
+# Requires the PPP Over ATM plugin
+#
+plugin pppoatm VPI.VCI
+
