@@ -15,7 +15,6 @@ if [ "$1" = "1" ]; then
 	    crc32=`lsmod | cut -d ' ' -f1 | grep -E "^crc32$"`
 	    if [ "$crc32" = "" ]; then
 	        /sbin/modprobe -q crc32
-	        /sbin/modprobe crc32
 	    fi
     fi
 
