@@ -45,7 +45,6 @@ function vci()
 
 function protocol()
 {
-  clear
   while [ !$(true) ]
     do
     echo -e "
@@ -58,39 +57,32 @@ function protocol()
     echo "[4] PPP over Ethernet (pppoe)"
     echo "======================="
     echo -n "Enter your menu choice. [1-4]: "
-    echo -n "Enter your menu choice, actual $PROTOCOL_MODE. [1-4]: "
     read PROTOCOL_MODE
     case $PROTOCOL_MODE in
       1)
-      1) 
 	  echo "RFC1483/2684 routed"
 	  break
 	  ;;
 
       2)
-      2) 
 	  echo "PPP over ATM (pppoa)"
 	  break
 	  ;;
 
       3)
-      3) 
 	  echo "RFC1483/2684 bridged"
 	  break
 	  ;;
 
       4)
-      4) 
 	  echo "PPP over Ethernet (pppoe)"
 	  break
 	  ;;
 
       *)
-      *) 
 	  echo "Opps!!! Please select choice 1,2,3,4";
 #	  echo "Press a key. . ." ;
-#	  echo "Press a key. . ." ; 
-	  read 
+	  read
 	  ;;
     esac
   done
@@ -100,7 +92,6 @@ function protocol()
 
 function drivermode()
 {
-  clear
   while [ !$(true) ]
     do
     echo -e "
@@ -108,37 +99,30 @@ function drivermode()
     echo " Driver Mode Menu "
     echo "-------------------------------------"
     echo "[1] amload + amedyn : Old classical userspace driver (mainly for 2.4 kernels)"
-    echo "[1] Classical userspace amedyn (for mainly for 2.4 kernels)"
-    echo "[2] New kernel space driver amedyn2 (experimental)"
-    echo "[3] Updated generic driver usbatm (best for last 2.6 kernels)"
+    echo "[2] amedyn2 + usbatm : New kernel space driver (experimental, see public aid request on website)"
+    echo "[3] amload + xusbatm : Updated generic driver (actualy the best solution for last 2.6 kernels)"
     echo "======================="
     echo -n "Enter your menu choice. [1-3]: "
-    echo -n "Enter your menu choice, actual $PROTOCOL_MODE. [1-3]: "
     read DRIVER_MODE
     case $DRIVER_MODE in
       1)
-      1) 
 	  echo "amedyn"
 	  break
 	  ;;
 
       2)
-      2) 
 	  echo "amedyn2"
 	  break
 	  ;;
 
       3)
-      3) 
 	  echo "xusbatm"
 	  break
 	  ;;
 
       *)
-      *) 
 	  echo "Opps!!! Please select choice 1,2,3";
 	  read
-	  read 
 	  ;;
     esac
   done
@@ -146,7 +130,6 @@ function drivermode()
 
 function linetype()
 {
-  clear
   while [ !$(true) ]
     do
     echo -e "
@@ -154,32 +137,26 @@ function linetype()
     echo " Line Type Menu "
     echo "-------------------------------------"
     echo "[1] Analog line"
-    echo "[1] Analogical"
-    echo "[2] ISDN"
+    echo "[2] ISDN line"
     echo "======================="
     echo -n "Enter your menu choice. [1-2]: "
-    echo -n "Enter your menu choice, actual $PROTOCOL_MODE. [1-2]: "
     read linetype
     case $linetype in
       1)
-      1) 
-	  echo "analogical"
+	  echo "Analog"
 	  line=0x15
 	  break
 	  ;;
 
       2)
-      2) 
 	  echo "ISDN"
 	  line=0x11
 	  break
 	  ;;
 
       *)
-      *) 
 	  echo "Opps!!! Please select choice 1,2";
 	  read
-	  read 
 	  ;;
     esac
   done
@@ -189,24 +166,46 @@ function linetype()
 function modem()
 {
   echo "Please connect your modem if it's not already done ? (press any key when ready)"
-  clear
+  read -n1
+
+  modem=$(cat /proc/bus/usb/devices | grep "Vendor=0b05 ProdID=6206")
+  if [ $? -eq 0 ]; then
+    vid=0x0b05
+    pid=0x6206
+  else
+    modem=$(cat /proc/bus/usb/devices | grep "Vendor=06b9 ProdID=a5a5")
+    if [ $? -eq 0 ]; then
+      vid=0x06b9
+      pid=0xa5a5
+    else
+      modem=$(cat /proc/bus/usb/devices | grep "Vendor=1767 ProdID=0005")
+      if [ $? -eq 0 ]; then
+        vid=0x1767
+        pid=0x0005
+      fi
+    fi
+  fi
+
+  if [ -n $vid ]; then
+    echo "Modem found! ($vid:$pid)"
+    return
+  fi
+
+
   while [ !$(true) ]
     do
     echo -e "
 -------------------------------------"
     echo " The modem was not found please select one : "
-    echo " Modem Menu "
     echo "-------------------------------------"
     echo "[1] 0x06b9/0xa5a5 : Zyxel Prestige 630-11, Zyxel Prestige 630-13, Topcom Webracer 851, ..."
     echo "[2] 0x0b05/0x6206 : Asus AAM600UG"
     echo "[3] 0x1767/0x0005 : Medi@com 103/MADSLU"
     echo "======================="
     echo -n "Enter your menu choice. [1-3]: "
-    echo -n "Enter your menu choice, actual $PROTOCOL_MODE. [1-3]: "
     read modemtype
     case $modemtype in
       1)
-      1) 
 	  echo "0x06b9/0xa5a5"
 	  vid=0x06b9
 	  pid=0xa5a5
@@ -214,15 +213,13 @@ function modem()
 	  ;;
 
       2)
-      2) 
 	  echo "0x0b05/0x6206"
 	  vid=0x0b05
 	  pid=0x6206
 	  break
 	  ;;
 
-	
-      3) 
+      3)
 	  echo "0x1767/0x0005"
 	  vid=0x1767
 	  pid=0x0005
@@ -230,10 +227,8 @@ function modem()
 	  ;;
 
       *)
-      *) 
 	  echo "Opps!!! Please select choice 1,2 or 3";
 	  read
-	  read 
 	  ;;
     esac
   done
@@ -248,16 +243,13 @@ echo -e "At any time, press Ctrl+C to quit this script without saving modificati
 "
 echo -n "Do you want to set your connection setting by using this script (Y/n) ? "
 read -n1 ans
-read ans
 
 echo -e "
 
 "
-if [[ "$ans" = "n" || "$ans" = "N" ]]
-    then
+if [[ "$ans" = "n" || "$ans" = "N" ]]; then
     exit 0
 fi
-fi 
 
 resync=0
 NETMASK=255.255.255.0
@@ -265,17 +257,15 @@ NETMASK=255.255.255.0
 modem
 linetype
 protocol
-protcol
 drivermode
 
-protocol
+
+if [[ $PROTOCOL_MODE -eq 1 || $PROTOCOL_MODE -eq 3 || $PROTOCOL_MODE -eq 4 ]]; then
 vpi
 vci
 fi
 
 if [[ "$PROTOCOL_MODE" = 1 || "$PROTOCOL_MODE" = 3 ]];
-clear
-if [[ "$PROTOCOL_MODE" = 1 || "$PROTOCOL_MODE" = 3 ]]; 
     then
     echo -e "
 -------------------------------------"
@@ -283,17 +273,14 @@ if [[ "$PROTOCOL_MODE" = 1 || "$PROTOCOL_MODE" = 3 ]];
     echo -e "-------------------------------------
 "
     echo -n "Enter IP address (If you left it blank in bridged mode, then it will use DHCP to get IP) : "
-    echo -n "Enter IP address (If you left it blank in bridged mode, then it will use DHCP to get IP), actual IP_ADDRESS : "
     read IP_ADDRESS
     echo -n "Enter the network mask (If you left if blank 255.255.255.0 will bu used) : "
-    echo -n "Enter the network mask (If you left if blank 255.255.255.0 will bu used), actual NETMASK : "
     read NETMASK
     if [ "$NETMASK" = "" ]
 	then
 	NETMASK=255.255.255.0
     fi
     echo -n "Enter the gateway IP  : "
-    echo -n "Enter the gateway IP, actual GATEWAY  : "
     read GATEWAY
 fi
 
@@ -353,13 +340,11 @@ GATEWAY=$GATEWAY
 RESYNC=$resync
 
 " > /etc/amedyn) ]
-" > ./etc/amedyn) ]
   do
   echo -e "
 ERROR writing config to file"
   echo -n "Try again ? (Y/n) : "
   read -n1 ans
-  read ans
   if [[ "$ans" = "n" || "$ans" = "N" ]]
       then
       exit -1
@@ -367,10 +352,20 @@ ERROR writing config to file"
 done
 
 echo "done"
-if [[ "$PROTOCOL_MODE" = 2 ]]; 
-    then
+
+if [[ "$PROTOCOL_MODE" = 2 ]]; then
+  echo -n "Would you like to set connection settings ? (Y/n) : "
+  read -n1 ans
+  echo -e "
+
+
+
+"
+  if [[ "$ans" = "n" || "$ans" = "N" ]]
+      then
+      exit -1
+  fi
   ./pppoatm_config.sh
 fi
 
 
-echo "done"
