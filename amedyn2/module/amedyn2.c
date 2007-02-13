@@ -106,7 +106,6 @@ MODULE_PARM_DESC(altsetting,
 struct amedyn_instance_data {
 	struct usbatm_data *usbatm;
 
-	struct work_struct status_checker;
 	unsigned int altsetting;
 
 	struct delayed_work status_checker;
@@ -532,9 +531,12 @@ static int amedyn_start_synchro(struct amedyn_instance_data *instance)
 	if (ret < 0) {
 		atm_warn(usbatm, "%s failed on local urb 8: %d
 ", __func__, ret);
-static void amedyn_check_status(struct amedyn_instance_data *instance)
 		return ret;
 	}
+
+	atm_dbg(usbatm, "%s: send sync signals.
+", __func__);
+	return 0;
 }
 
 static void amedyn_check_status(struct work_struct *work)
@@ -644,7 +646,6 @@ static void amedyn_check_status(struct work_struct *work)
 			break;
 		}
 		instance->last_status = status;
-	schedule_work(&instance->status_checker);
 		return;
 	}
 }
@@ -837,7 +838,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 
 	if (!use_isoc && !instance->altsetting)
 
-	INIT_WORK(&instance->status_checker, (void *)amedyn_check_status, instance);
 	if (!instance->altsetting) {
 		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, DEFAULT_BULK_ALTSETTING)) < 0) {
 			usb_err(usbatm, "%s: setting interface to %2d failed (%d)!
