@@ -66,8 +66,6 @@ static const char amedyn_driver_name[] = "amedyn2";
 #define MIN_POLL_DELAY		5000	/* milliseconds */
 #define MAX_POLL_DELAY		60000	/* milliseconds */
 
-//#define RESUBMIT_DELAY		1000	/* milliseconds */
-
 #define DEFAULT_BULK_ALTSETTING	1
 #define DEFAULT_ISOC_ALTSETTING	1 /* This modem don't have iso*/
 
@@ -94,9 +92,8 @@ MODULE_PARM_DESC(altsetting,
 #define ENDPOINT_BULK_DATA		0x07
 #define ENDPOINT_FIRMWARE		0x05
 
-// from the userspace tool
-#define AMEDYN_USB_IN_INFO  0x81    // IN endpoint address, read modem status /
-#define ENDPOINT_FIRMWARE_IN  0x85    // IN endpoint address, read config /
+/* from the userspace tool */
+#define AMEDYN_USB_IN_INFO  0x81    /* IN endpoint address, read modem status */
 #define ENDPOINT_FIRMWARE_IN  0x85  /* IN endpoint address, read config */
 
 
@@ -130,7 +127,6 @@ static int amedyn_line_down_signal (struct amedyn_instance_data *instance)
 {
 	struct usbatm_data *usbatm = instance->usbatm;
 	struct usb_device *usb_dev = usbatm->usb_dev;
-//	unsigned char buf[0x1ff];
 	struct atm_dev *atm_dev = usbatm->atm_dev;
 	int ret;
 
@@ -421,8 +417,6 @@ static int amedyn_read_status(struct amedyn_instance_data *instance)
 	} while ( buf[0]  != 0x01 && ret >= 0 );
 
 	if (ret < 0) {
-//	atm_dbg(usbatm, "%s: Info type - %02x
-", __func__, buf[0]);
 		atm_warn(usbatm, "Error retrieving info!
 ");
 		return ret;
@@ -587,14 +581,11 @@ static void amedyn_check_status(struct work_struct *work)
 		atm_warn(usbatm, "Line sync faild with code: %02x
 ", buf[1]);
 		amedyn_line_down_signal (instance);
-//	if ( buf[0] == 0x01 )
-//		atm_dbg(usbatm, "%s: line state %02x
-", __func__, buf[OFFSET_7]);
-//	else {
-//	    atm_dbg(usbatm, "amedyn_get_status return useless info
-");
-//	    return ;
-//	}
+		amedyn_start_synchro(instance);
+		return;
+	}
+
+/*	if ( buf[0] == 0x01 )
 		atm_dbg(usbatm, "%s: line state %02x
 ", __func__, buf[OFFSET_7]);
 	else {
@@ -693,7 +684,6 @@ static void amedyn_atm_stop(struct usbatm_data *usbatm, struct atm_dev *atm_dev)
 {
 	struct amedyn_instance_data *instance = usbatm->driver_data;
 	
-	mb(); // Delete?
 	atm_dbg(usbatm, "%s entered
 ", __func__);
 
@@ -850,7 +840,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 
 		}
 
-//-------------------------------------------------------------------
 	INIT_DELAYED_WORK(&instance->status_checker, amedyn_check_status);
 
 	instance->status_checker.timer.function = amedyn_status_poll;
@@ -870,7 +859,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	instance->initfirmfile = "Init-usb.bin";
 	if (usb_dev->descriptor.idProduct == AME_PRODUCTID2
 	    || usb_dev->descriptor.idProduct == AME_PRODUCTID4) {
-//----------------------------------------------------------------------
 	    dbg("Config for modem type 2 (Zyxel)");
 	    instance->datamax = 0x1a0;
 	    instance->firmfile = "fw-usb.bin"; }
