@@ -152,7 +152,6 @@ static int amedyn_line_down_signal (struct amedyn_instance_data *instance)
 ***************/
 
 /* From userspace tool */
-void format_message(int cmd, int ldata, int address, char *bufin)
 /* format a message */
 static void format_message(int cmd, int ldata, int address, char *bufin)
 {
@@ -172,7 +171,6 @@ static void format_message(int cmd, int ldata, int address, char *bufin)
 	memcpy(bufin, buf, sizeof(buf));
 }
 
-int send_block(struct amedyn_instance_data *instance, int place, char *bufin, int len)
 /* From userspace tool */
 static int send_block(struct amedyn_instance_data *instance, int place, char *bufin, int len)
 {
