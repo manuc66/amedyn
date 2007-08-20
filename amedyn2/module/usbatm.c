@@ -280,7 +280,6 @@ static int usbatm_submit_urb(struct urb *urb)
 }
 
 static void usbatm_complete(struct urb *urb)
-static void usbatm_complete(struct urb *urb, struct pt_regs *regs)
 {
 	struct usbatm_channel *channel = urb->context;
 	unsigned long flags;
@@ -1117,7 +1116,6 @@ static int usbatm_atm_init(struct usbatm_data *instance)
 **  USB  **
 **********/
 
-	instance->thread_pid = get_current()->pid;
 static int usbatm_do_heavy_init(void *arg)
 {
 	struct usbatm_data *instance = arg;
