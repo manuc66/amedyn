@@ -300,6 +300,8 @@ static void usbatm_complete(struct urb *urb)
 			 urb->status != -EILSEQ ))
 	{
 		if (urb->status == -ESHUTDOWN)
+			return;
+
 		if (printk_ratelimit())
 			atm_warn(channel->usbatm, "%s: urb 0x%p failed (%d)!
 ",
