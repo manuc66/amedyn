@@ -571,7 +571,6 @@ static unsigned int usbatm_write_cells(struct usbatm_data *instance,
 		ptr[3] = vcc->vci << 4;
 		ptr[4] = 0xec;
 		ptr += ATM_CELL_HEADER;
-		memcpy(ptr, skb->data, data_len);
 
 		skb_copy_from_linear_data(skb, ptr, data_len);
 		ptr += data_len;
