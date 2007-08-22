@@ -67,7 +67,6 @@ static const char amedyn_driver_name[] = "amedyn2";
 #define MAX_POLL_DELAY		60000	/* milliseconds */
 
 #define DEFAULT_BULK_ALTSETTING	1
-#define DEFAULT_ISOC_ALTSETTING	1 /* This modem don't have iso*/
 
 static unsigned int altsetting = DEFAULT_BULK_ALTSETTING;
 
@@ -733,7 +732,6 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	struct usb_interface *cur_intf, *data_intf;
 	struct amedyn_instance_data *instance;
 	int ifnum = intf->altsetting->desc.bInterfaceNumber;
-	int use_isoc; /* This modem don't have iso*/
 	int num_interfaces = usb_dev->actconfig->desc.bNumInterfaces;
 	int i, ret;
 
@@ -781,9 +779,7 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 	}
 
 	instance->usbatm = usbatm;
-	/* altsetting and enable_isoc may change at any moment, so take a snapshot */
 
-	use_isoc = 0;
 	/* altsetting may change at any moment, so take a snapshot */
 	instance->altsetting = altsetting;
 
@@ -793,48 +789,14 @@ static int amedyn_bind(struct usbatm_data *usbatm,
 ", __func__, instance->altsetting, ret);
 			instance->altsetting = 0; /* fall back to default */
 		}
-	if (!instance->altsetting && use_isoc)
-		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, DEFAULT_ISOC_ALTSETTING)) < 0) {
-			usb_dbg(usbatm, "%s: setting interface to %2d failed (%d)!
-", __func__, DEFAULT_ISOC_ALTSETTING, ret);
-			use_isoc = 0; /* fall back to bulk */
-		}
-
-	if (use_isoc) {
-		const struct usb_host_interface *desc = data_intf->cur_altsetting;
-		const __u8 target_address = USB_DIR_IN | usbatm->driver->isoc_in;
-		int i;
-
-		use_isoc = 0; /* fall back to bulk if endpoint not found */
-
-		for (i=0; i<desc->desc.bNumEndpoints; i++) {
-			const struct usb_endpoint_descriptor *endpoint_desc = &desc->endpoint[i].desc;
-
-			if ((endpoint_desc->bEndpointAddress == target_address)) {
-				use_isoc = (endpoint_desc->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-					USB_ENDPOINT_XFER_ISOC;
-				break;
-			}
-		}
-
-		if (!use_isoc)
-			usb_info(usbatm, "isochronous transfer not supported - using bulk
-");
-	}
-
-	if (!use_isoc && !instance->altsetting)
 
 	if (!instance->altsetting) {
 		if ((ret = usb_set_interface(usb_dev, INTERFACE_DATA, DEFAULT_BULK_ALTSETTING)) < 0) {
 			usb_err(usbatm, "%s: setting interface to %2d failed (%d)!
 ", __func__, DEFAULT_BULK_ALTSETTING, ret);
+			goto fail_free;
 			}
 		instance->altsetting = DEFAULT_BULK_ALTSETTING;
-	if (!instance->altsetting)
-		instance->altsetting = use_isoc ? DEFAULT_ISOC_ALTSETTING : DEFAULT_BULK_ALTSETTING;
-
-	usbatm->flags |= (use_isoc ? UDSL_USE_ISOC : 0);
-
 		}
 
 	INIT_DELAYED_WORK(&instance->status_checker, amedyn_check_status);
