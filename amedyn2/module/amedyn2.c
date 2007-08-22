@@ -77,7 +77,6 @@ static unsigned int altsetting = DEFAULT_BULK_ALTSETTING;
 static int linetype = 0;
 
 module_param(linetype, uint, S_IRUGO | S_IWUSR);
-module_param(linetype, uint, 0444);
 MODULE_PARM_DESC(linetype, "Set phone line type code");
 
 module_param(altsetting, uint, S_IRUGO | S_IWUSR);
