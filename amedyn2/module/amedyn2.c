@@ -137,8 +137,6 @@ static int amedyn_line_down_signal (struct amedyn_instance_data *instance)
 		return ret; }
 	atm_dbg(usbatm, "%s: OK sync down command
 ", __func__);
-	atm_dbg(usbatm, "%s: OK sync dowm command
-", __func__);
 
 	atm_dev->signal = ATM_PHY_SIG_UNKNOWN;
 	
