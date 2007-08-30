@@ -245,7 +245,6 @@ static int amedyn_upload_firmware(struct amedyn_instance_data *instance,
 		if (ret < 0) {
 			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 			goto out_free;
-			dbg("amedyn_upload_firmware: write Init firmware to modem failed (%d)!", ret);
 		}
 	} while (offset < fw1->size );
 
