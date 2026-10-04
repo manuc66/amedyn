@@ -40,6 +40,16 @@ firmware blobs (`*.bin`) are not versioned here — see
 [`amedyn/firmware/README.md`](amedyn/firmware/README.md). The `CVSROOT`
 directory, which held a password hash, was dropped as well.
 
+### Archived web page
+
+The documentation was also hosted on a University of Liège student page
+(`~counasse/modem/`) until at least 2008. That host is gone, so the page was
+recovered from the [Wayback Machine](https://web.archive.org/web/20080225101815/http://www.student.montefiore.ulg.ac.be/~counasse/modem/)
+and kept under [`web/`](web/) — see [`web/README.md`](web/README.md) for the
+details. Its `index.html` is byte-for-byte identical to
+`amedyn/doc/index.html`, which independently confirms the reconstruction
+against a copy hosted outside the repository.
+
 ## License
 
 GPL v2 — see [`amedyn/COPYING`](amedyn/COPYING) and its translation
