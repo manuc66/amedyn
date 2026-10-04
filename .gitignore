@@ -1,0 +1,9 @@
+# Raw CVS/VCS archives, kept out of the history on purpose.
+*.bin
+*.,v
+CVS/
+CVSROOT/
+Attic/
+*~
+*.o
+*.mod
